@@ -1,0 +1,151 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import '../theme/ios_colors.dart';
+
+enum IosButtonVariant { primary, secondary, tinted, outline, destructive }
+
+enum IosButtonSize { small, medium, large }
+
+class IosButton extends StatelessWidget {
+  final Widget? child;
+  final String? text;
+  final Widget? icon;
+  final VoidCallback? onPressed;
+  final IosButtonVariant variant;
+  final IosButtonSize size;
+  final bool isLoading;
+  final bool isFullWidth;
+
+  const IosButton({
+    super.key,
+    this.child,
+    this.text,
+    this.icon,
+    this.onPressed,
+    this.variant = IosButtonVariant.primary,
+    this.size = IosButtonSize.medium,
+    this.isLoading = false,
+    this.isFullWidth = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+
+    Color bg;
+    Color fg;
+    Color? border;
+
+    switch (variant) {
+      case IosButtonVariant.primary:
+        bg = IosColors.statusGreen;
+        fg = CupertinoColors.black;
+        break;
+      case IosButtonVariant.secondary:
+        bg = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA);
+        fg = isDark ? CupertinoColors.white : CupertinoColors.black;
+        break;
+      case IosButtonVariant.tinted:
+        bg = isDark ? const Color(0x3330D158) : const Color(0x2230D158);
+        fg = isDark ? const Color(0xFF30D158) : const Color(0xFF248A3D);
+        break;
+      case IosButtonVariant.outline:
+        bg = const Color(0x00000000);
+        fg = isDark ? CupertinoColors.white : CupertinoColors.black;
+        border = isDark ? const Color(0xFF3A3A3C) : const Color(0xFFC7C7CC);
+        break;
+      case IosButtonVariant.destructive:
+        bg = isDark ? const Color(0x33FF453A) : const Color(0x22FF453A);
+        fg = IosColors.statusRed;
+        break;
+    }
+
+    double height;
+    double fontSize;
+    EdgeInsets padding;
+    double radius;
+
+    switch (size) {
+      case IosButtonSize.small:
+        height = 32;
+        fontSize = 12;
+        padding = const EdgeInsets.symmetric(horizontal: 12);
+        radius = 16;
+        break;
+      case IosButtonSize.medium:
+        height = 42;
+        fontSize = 14;
+        padding = const EdgeInsets.symmetric(horizontal: 18);
+        radius = 21;
+        break;
+      case IosButtonSize.large:
+        height = 50;
+        fontSize = 16;
+        padding = const EdgeInsets.symmetric(horizontal: 24);
+        radius = 25;
+        break;
+    }
+
+    final isDisabled = onPressed == null || isLoading;
+
+    return SizedBox(
+      height: height,
+      width: isFullWidth ? double.infinity : null,
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.circular(radius),
+        color: bg,
+        disabledColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
+        pressedOpacity: 0.65,
+        onPressed: isDisabled
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onPressed?.call();
+              },
+        child: Container(
+          padding: padding,
+          alignment: Alignment.center,
+          decoration: border != null
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(radius),
+                  border: Border.all(color: border, width: 1.0),
+                )
+              : null,
+          child: isLoading
+              ? CupertinoActivityIndicator(
+                  color: fg,
+                  radius: size == IosButtonSize.small ? 7 : 10,
+                )
+              : Row(
+                  mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      IconTheme(
+                        data: IconThemeData(color: fg, size: fontSize + 3),
+                        child: icon!,
+                      ),
+                      if (text != null || child != null) const SizedBox(width: 6),
+                    ],
+                    if (text != null)
+                      Text(
+                        text!,
+                        style: TextStyle(
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.w600,
+                          color: isDisabled
+                              ? (isDark ? const Color(0xFF636366) : const Color(0xFFAEAEC2))
+                              : fg,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ?child,
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
