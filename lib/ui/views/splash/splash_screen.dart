@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors;
 import '../../../core/theme/ios_colors.dart';
+import '../auth/auth_screen.dart';
+import '../../view_models/auth_view_model.dart';
 import '../../view_models/generate_view_model.dart';
 import '../../view_models/history_view_model.dart';
 import '../../view_models/settings_view_model.dart';
@@ -11,12 +13,14 @@ class SplashScreen extends StatefulWidget {
   final GenerateViewModel generateViewModel;
   final HistoryViewModel historyViewModel;
   final SettingsViewModel settingsViewModel;
+  final AuthViewModel authViewModel;
 
   const SplashScreen({
     super.key,
     required this.generateViewModel,
     required this.historyViewModel,
     required this.settingsViewModel,
+    required this.authViewModel,
   });
 
   @override
@@ -102,20 +106,39 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 2400),
     );
 
+    // Start session check in background during splash animation
+    widget.authViewModel.checkSession();
+
     _entranceController.forward();
     _progressController.forward();
 
     _progressController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        _navigateToHome();
+        _navigateToNext();
       }
     });
   }
 
-  void _navigateToHome() {
+  void _navigateToNext() {
     if (_isNavigating || !mounted) return;
     _isNavigating = true;
 
+    if (widget.authViewModel.currentUser != null) {
+      _openMainScreen();
+    } else {
+      _openAuthScreen();
+    }
+  }
+
+  Future<void> _handleScreenTap() async {
+    if (_isNavigating || !mounted) return;
+    if (widget.authViewModel.isLoading) {
+      await widget.authViewModel.checkSession();
+    }
+    _navigateToNext();
+  }
+
+  void _openMainScreen() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 650),
@@ -124,6 +147,55 @@ class _SplashScreenState extends State<SplashScreen>
           generateViewModel: widget.generateViewModel,
           historyViewModel: widget.historyViewModel,
           settingsViewModel: widget.settingsViewModel,
+          authViewModel: widget.authViewModel,
+          onLoggedOut: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              PageRouteBuilder(
+                transitionDuration: const Duration(milliseconds: 400),
+                pageBuilder: (context, anim, secAnim) => AuthScreen(
+                  authViewModel: widget.authViewModel,
+                  onAuthenticated: () {
+                    widget.generateViewModel.init();
+                    widget.historyViewModel.loadEntries();
+                    widget.settingsViewModel.loadSettings();
+                    _openMainScreen();
+                  },
+                ),
+                transitionsBuilder: (context, anim, secAnim, child) {
+                  return FadeTransition(opacity: anim, child: child);
+                },
+              ),
+              (route) => false,
+            );
+          },
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          );
+          return FadeTransition(
+            opacity: curved,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
+  void _openAuthScreen() {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 650),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            AuthScreen(
+          authViewModel: widget.authViewModel,
+          onAuthenticated: () {
+            widget.generateViewModel.init();
+            widget.historyViewModel.loadEntries();
+            widget.settingsViewModel.loadSettings();
+            _openMainScreen();
+          },
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
@@ -162,7 +234,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: IosColors.darkBackground,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: _navigateToHome,
+        onTap: _handleScreenTap,
         child: Stack(
           alignment: Alignment.center,
           children: [

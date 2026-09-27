@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/ios_colors.dart';
+import '../view_models/auth_view_model.dart';
 import '../view_models/generate_view_model.dart';
 import '../view_models/history_view_model.dart';
 import '../view_models/settings_view_model.dart';
@@ -12,12 +13,16 @@ class MainNavigationScreen extends StatefulWidget {
   final GenerateViewModel generateViewModel;
   final HistoryViewModel historyViewModel;
   final SettingsViewModel settingsViewModel;
+  final AuthViewModel authViewModel;
+  final VoidCallback onLoggedOut;
 
   const MainNavigationScreen({
     super.key,
     required this.generateViewModel,
     required this.historyViewModel,
     required this.settingsViewModel,
+    required this.authViewModel,
+    required this.onLoggedOut,
   });
 
   @override
@@ -31,6 +36,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void initState() {
     super.initState();
     widget.generateViewModel.init();
+    widget.historyViewModel.loadEntries();
     widget.settingsViewModel.init();
   }
 
@@ -101,6 +107,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             return CupertinoTabView(
               builder: (context) => SettingsScreen(
                 viewModel: widget.settingsViewModel,
+                authViewModel: widget.authViewModel,
+                onLoggedOut: widget.onLoggedOut,
               ),
             );
           default:

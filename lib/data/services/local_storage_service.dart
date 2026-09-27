@@ -6,6 +6,21 @@ class LocalStorageService {
   static const String _keyServerUrl = 'maganghub:server_url';
   static const String _keySelectedRepoIds = 'maganghub:selected_repo_ids';
   static const String _keyDraftAutoSave = 'maganghub:draft:auto';
+  static const String _keyActiveUserId = 'maganghub:active_user_id';
+
+  Future<int?> getActiveUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyActiveUserId);
+  }
+
+  Future<void> setActiveUserId(int? id) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (id == null) {
+      await prefs.remove(_keyActiveUserId);
+    } else {
+      await prefs.setInt(_keyActiveUserId, id);
+    }
+  }
 
   Future<String?> getServerUrl() async {
     final prefs = await SharedPreferences.getInstance();
@@ -34,9 +49,16 @@ class LocalStorageService {
     await prefs.setString(_keySelectedRepoIds, jsonEncode(ids));
   }
 
-  Future<Map<String, dynamic>?> getAutoSavedDraft() async {
+  String _draftKey(int? userId) =>
+      userId != null ? '$_keyDraftAutoSave:$userId' : _keyDraftAutoSave;
+
+  Future<Map<String, dynamic>?> getAutoSavedDraft({int? userId}) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_keyDraftAutoSave);
+    String? raw;
+    if (userId != null) {
+      raw = prefs.getString(_draftKey(userId));
+    }
+    raw ??= prefs.getString(_keyDraftAutoSave);
     if (raw == null) return null;
     try {
       final decoded = jsonDecode(raw);
@@ -50,6 +72,7 @@ class LocalStorageService {
     required String mode,
     String? manualNotes,
     String? combinedNotes,
+    int? userId,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final payload = {
@@ -59,11 +82,14 @@ class LocalStorageService {
       'combinedNotes': combinedNotes ?? '',
       'savedAt': DateTime.now().millisecondsSinceEpoch,
     };
-    await prefs.setString(_keyDraftAutoSave, jsonEncode(payload));
+    await prefs.setString(_draftKey(userId), jsonEncode(payload));
   }
 
-  Future<void> clearLocalDraft() async {
+  Future<void> clearLocalDraft({int? userId}) async {
     final prefs = await SharedPreferences.getInstance();
+    if (userId != null) {
+      await prefs.remove(_draftKey(userId));
+    }
     await prefs.remove(_keyDraftAutoSave);
   }
 }

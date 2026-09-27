@@ -52,11 +52,13 @@ class LogbookEntry extends DraftFields {
   final int no;
   final String tanggal;
   final int rowNumber;
+  final int? userId;
 
   const LogbookEntry({
     required this.no,
     required this.tanggal,
     required this.rowNumber,
+    this.userId,
     required super.aktivitas,
     required super.pembelajaran,
     required super.kendala,
@@ -67,6 +69,7 @@ class LogbookEntry extends DraftFields {
     int? no,
     String? tanggal,
     int? rowNumber,
+    int? userId,
     String? aktivitas,
     String? pembelajaran,
     String? kendala,
@@ -75,6 +78,7 @@ class LogbookEntry extends DraftFields {
       no: no ?? this.no,
       tanggal: tanggal ?? this.tanggal,
       rowNumber: rowNumber ?? this.rowNumber,
+      userId: userId ?? this.userId,
       aktivitas: aktivitas ?? this.aktivitas,
       pembelajaran: pembelajaran ?? this.pembelajaran,
       kendala: kendala ?? this.kendala,
@@ -86,6 +90,7 @@ class LogbookEntry extends DraftFields {
       no: (json['no'] as num?)?.toInt() ?? 0,
       tanggal: json['tanggal'] as String? ?? '',
       rowNumber: (json['rowNumber'] as num?)?.toInt() ?? 0,
+      userId: (json['userId'] ?? json['user_id'] as num?)?.toInt(),
       aktivitas: json['aktivitas'] as String? ?? '',
       pembelajaran: json['pembelajaran'] as String? ?? '',
       kendala: json['kendala'] as String? ?? '',
@@ -98,6 +103,7 @@ class LogbookEntry extends DraftFields {
       'no': no,
       'tanggal': tanggal,
       'rowNumber': rowNumber,
+      if (userId != null) 'userId': userId,
       'aktivitas': aktivitas,
       'pembelajaran': pembelajaran,
       'kendala': kendala,

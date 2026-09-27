@@ -1,21 +1,30 @@
 import 'package:flutter/cupertino.dart';
 import '../../../../core/theme/ios_colors.dart';
+import '../../view_models/auth_view_model.dart';
 import '../../view_models/settings_view_model.dart';
 import 'widgets/about_section.dart';
 import 'widgets/ai_provider_section.dart';
 import 'widgets/repo_manager_section.dart';
+import 'widgets/user_account_section.dart';
 
 class SettingsScreen extends StatelessWidget {
   final SettingsViewModel viewModel;
+  final AuthViewModel authViewModel;
+  final VoidCallback onLoggedOut;
 
-  const SettingsScreen({super.key, required this.viewModel});
+  const SettingsScreen({
+    super.key,
+    required this.viewModel,
+    required this.authViewModel,
+    required this.onLoggedOut,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
 
     return ListenableBuilder(
-      listenable: viewModel,
+      listenable: Listenable.merge([viewModel, authViewModel]),
       builder: (context, _) {
         return CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(
@@ -60,6 +69,11 @@ class SettingsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        UserAccountSection(
+                          authViewModel: authViewModel,
+                          onLoggedOut: onLoggedOut,
+                        ),
+                        const SizedBox(height: 16),
                         AiProviderSection(viewModel: viewModel),
                         const SizedBox(height: 16),
                         RepoManagerSection(viewModel: viewModel),

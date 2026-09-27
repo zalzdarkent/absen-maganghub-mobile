@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/ios_theme.dart';
+import 'data/repositories/auth_repository.dart';
 import 'data/repositories/logbook_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/services/api_service.dart';
@@ -9,6 +10,7 @@ import 'data/services/llm_service.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/standalone_storage_service.dart';
 import 'ui/view_models/app_state.dart';
+import 'ui/view_models/auth_view_model.dart';
 import 'ui/view_models/generate_view_model.dart';
 import 'ui/view_models/history_view_model.dart';
 import 'ui/view_models/settings_view_model.dart';
@@ -30,6 +32,11 @@ void main() async {
   };
 
   // Initialize Repositories
+  final authRepository = AuthRepository(
+    sqliteDatabaseService: standaloneStorageService.sqlite,
+    localStorageService: localStorageService,
+    standaloneStorageService: standaloneStorageService,
+  );
   final settingsRepository = SettingsRepository(
     apiService: apiService,
     localStorageService: localStorageService,
@@ -45,6 +52,7 @@ void main() async {
   );
 
   // Initialize ViewModels
+  final authViewModel = AuthViewModel(authRepository: authRepository);
   final appState = AppState(settingsRepository: settingsRepository);
   final generateViewModel = GenerateViewModel(
     logbookRepository: logbookRepository,
@@ -56,6 +64,7 @@ void main() async {
 
   runApp(MagangHubApp(
     appState: appState,
+    authViewModel: authViewModel,
     generateViewModel: generateViewModel,
     historyViewModel: historyViewModel,
     settingsViewModel: settingsViewModel,
@@ -64,6 +73,7 @@ void main() async {
 
 class MagangHubApp extends StatelessWidget {
   final AppState appState;
+  final AuthViewModel authViewModel;
   final GenerateViewModel generateViewModel;
   final HistoryViewModel historyViewModel;
   final SettingsViewModel settingsViewModel;
@@ -71,6 +81,7 @@ class MagangHubApp extends StatelessWidget {
   const MagangHubApp({
     super.key,
     required this.appState,
+    required this.authViewModel,
     required this.generateViewModel,
     required this.historyViewModel,
     required this.settingsViewModel,
@@ -83,6 +94,7 @@ class MagangHubApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: IosTheme.darkTheme(),
       home: SplashScreen(
+        authViewModel: authViewModel,
         generateViewModel: generateViewModel,
         historyViewModel: historyViewModel,
         settingsViewModel: settingsViewModel,
