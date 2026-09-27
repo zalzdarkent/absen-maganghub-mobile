@@ -33,7 +33,8 @@ class _ServerConfigSectionState extends State<ServerConfigSection> {
   @override
   void didUpdateWidget(covariant ServerConfigSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.viewModel.serverUrl.isNotEmpty && _urlCtrl.text != widget.viewModel.serverUrl) {
+    if (oldWidget.viewModel.serverUrl != widget.viewModel.serverUrl &&
+        widget.viewModel.serverUrl.isNotEmpty) {
       _urlCtrl.text = widget.viewModel.serverUrl;
     }
   }

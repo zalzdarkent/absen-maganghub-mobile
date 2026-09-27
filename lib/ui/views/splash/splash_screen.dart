@@ -448,7 +448,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Kemnaker RI • AI Powered v1.0.0',
+                                  'Zalz • AI Powered v1.0.0',
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,

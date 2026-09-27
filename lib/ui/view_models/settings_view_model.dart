@@ -128,6 +128,7 @@ class SettingsViewModel extends ChangeNotifier {
     try {
       final payload = <String, dynamic>{
         'provider': provider,
+        'llmProvider': provider,
         'localLlmUrl': localLlmUrl,
         'localLlmModel': localLlmModel,
         'localLlmApiKey': localLlmApiKey,
@@ -135,6 +136,7 @@ class SettingsViewModel extends ChangeNotifier {
       };
       if (geminiApiKey != null && geminiApiKey.trim().isNotEmpty) {
         payload['apiKey'] = geminiApiKey.trim();
+        payload['geminiApiKey'] = geminiApiKey.trim();
       }
       final res = await settingsRepository.testLlm(payload);
       _testResult = res;

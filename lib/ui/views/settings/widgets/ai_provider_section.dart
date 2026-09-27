@@ -16,6 +16,7 @@ class AiProviderSection extends StatefulWidget {
 
 class _AiProviderSectionState extends State<AiProviderSection> {
   late String _provider;
+  bool _userSwitchedProvider = false;
   late TextEditingController _localUrlCtrl;
   late TextEditingController _localModelCtrl;
   late TextEditingController _localKeyCtrl;
@@ -37,12 +38,24 @@ class _AiProviderSectionState extends State<AiProviderSection> {
   @override
   void didUpdateWidget(covariant AiProviderSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final s = widget.viewModel.settings;
-    _provider = s.llmProvider;
-    if (_localUrlCtrl.text != s.localLlmUrl) _localUrlCtrl.text = s.localLlmUrl;
-    if (_localModelCtrl.text != s.localLlmModel) _localModelCtrl.text = s.localLlmModel;
-    if (_localKeyCtrl.text != s.localLlmApiKey) _localKeyCtrl.text = s.localLlmApiKey;
-    if (_geminiModelCtrl.text != s.geminiModel) _geminiModelCtrl.text = s.geminiModel;
+    if (oldWidget.viewModel.settings != widget.viewModel.settings) {
+      final s = widget.viewModel.settings;
+      if (!_userSwitchedProvider) {
+        _provider = s.llmProvider;
+      }
+      if (_localUrlCtrl.text.isEmpty || oldWidget.viewModel.settings.localLlmUrl != s.localLlmUrl) {
+        _localUrlCtrl.text = s.localLlmUrl;
+      }
+      if (_localModelCtrl.text.isEmpty || oldWidget.viewModel.settings.localLlmModel != s.localLlmModel) {
+        _localModelCtrl.text = s.localLlmModel.isNotEmpty ? s.localLlmModel : 'gpt-oss-20b';
+      }
+      if (_localKeyCtrl.text.isEmpty || oldWidget.viewModel.settings.localLlmApiKey != s.localLlmApiKey) {
+        _localKeyCtrl.text = s.localLlmApiKey;
+      }
+      if (_geminiModelCtrl.text.isEmpty || oldWidget.viewModel.settings.geminiModel != s.geminiModel) {
+        _geminiModelCtrl.text = s.geminiModel;
+      }
+    }
   }
 
   @override
@@ -66,6 +79,7 @@ class _AiProviderSectionState extends State<AiProviderSection> {
         geminiApiKey: _geminiKeyCtrl.text.trim(),
       );
       _geminiKeyCtrl.clear();
+      _userSwitchedProvider = false;
       if (mounted) {
         IosToast.show(context, 'Pengaturan model AI berhasil disimpan!', type: ToastType.success);
       }
@@ -169,7 +183,12 @@ class _AiProviderSectionState extends State<AiProviderSection> {
               ),
             },
             onValueChanged: (val) {
-              if (val != null) setState(() => _provider = val);
+              if (val != null) {
+                setState(() {
+                  _provider = val;
+                  _userSwitchedProvider = true;
+                });
+              }
             },
           ),
           const SizedBox(height: 16),
