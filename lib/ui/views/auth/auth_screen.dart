@@ -239,7 +239,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   center: const Alignment(0, -0.4),
                   radius: 0.9,
                   colors: [
-                    const Color(0xFF30D158).withValues(alpha: 0.14),
+                    IosColors.primary.withValues(alpha: 0.14),
                     const Color(0xFF0A84FF).withValues(alpha: 0.04),
                     Colors.transparent,
                   ],
@@ -264,21 +264,18 @@ class _AuthScreenState extends State<AuthScreen> {
                         height: 78,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF1E2922),
-                              Color(0xFF0F1511),
-                            ],
+                            colors: IosColors.avatarGradient,
                           ),
                           border: Border.all(
-                            color: const Color(0xFF30D158).withValues(alpha: 0.4),
+                            color: IosColors.primary.withValues(alpha: 0.4),
                             width: 1.5,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF30D158).withValues(alpha: 0.25),
+                              color: IosColors.primary.withValues(alpha: 0.25),
                               blurRadius: 20,
                               spreadRadius: 1,
                             ),
@@ -289,7 +286,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           'assets/icon/app_icon.png',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return const Center(
+                            return Center(
                               child: Icon(
                                 CupertinoIcons.book_fill,
                                 color: IosColors.statusGreen,
@@ -603,7 +600,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           CupertinoIcons.lock_shield,
                           size: 13,
                           color: IosColors.statusGreen,
@@ -680,7 +677,7 @@ class _AuthTabButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(9),
           border: isSelected
               ? Border.all(
-                  color: const Color(0xFF30D158).withValues(alpha: 0.3),
+                  color: IosColors.primary.withValues(alpha: 0.3),
                   width: 0.8,
                 )
               : null,

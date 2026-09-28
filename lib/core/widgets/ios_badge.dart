@@ -28,10 +28,14 @@ class IosBadge extends StatelessWidget {
 
     switch (variant) {
       case IosBadgeVariant.success:
-        bg = isDark ? const Color(0x2630D158) : const Color(0x1F30D158);
-        fg = isDark ? const Color(0xFF30D158) : const Color(0xFF248A3D);
-        border = isDark ? const Color(0x4D30D158) : const Color(0x3330D158);
-        dotColor = const Color(0xFF30D158);
+        bg = isDark
+            ? IosColors.primary.withValues(alpha: 0.16)
+            : IosColors.primary.withValues(alpha: 0.12);
+        fg = IosColors.primary;
+        border = isDark
+            ? IosColors.primary.withValues(alpha: 0.32)
+            : IosColors.primary.withValues(alpha: 0.22);
+        dotColor = IosColors.primary;
         break;
       case IosBadgeVariant.warning:
         bg = isDark ? const Color(0x26FF9F0A) : const Color(0x1FFF9F0A);

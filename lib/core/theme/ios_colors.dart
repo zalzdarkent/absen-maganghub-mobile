@@ -1,6 +1,35 @@
 import 'package:flutter/cupertino.dart';
+import 'app_accent_theme.dart';
 
 class IosColors {
+  // Dynamic Accent Theme State
+  static final ValueNotifier<AccentColorTheme> accentThemeNotifier =
+      ValueNotifier<AccentColorTheme>(AccentColorTheme.emerald);
+
+  static AccentColorTheme get currentTheme => accentThemeNotifier.value;
+  static bool get isSusanoo => currentTheme == AccentColorTheme.susanoo;
+
+  static void setAccentTheme(AccentColorTheme theme) {
+    if (accentThemeNotifier.value != theme) {
+      accentThemeNotifier.value = theme;
+    }
+  }
+
+  // Dynamic Theme Colors
+  static Color get primary => currentTheme.primary;
+  static Color get onPrimary => currentTheme.onPrimary;
+  static Color get primaryLight => currentTheme.primaryLight;
+  static Color get primaryDark => currentTheme.primaryDark;
+  static List<Color> get avatarGradient => currentTheme.avatarGradient;
+  static List<Color> get squircleGradient => currentTheme.squircleGradient;
+
+  // Backwards-compatible statusGreen getter mapped to the active accent color
+  static Color get statusGreen => primary;
+
+  // Static reference colors
+  static const Color pureGreen = Color(0xFF30D158);
+  static const Color susanooPurple = Color(0xFFA855F7);
+
   // Apple System Tint Colors
   static const Color systemBlue = CupertinoColors.systemBlue;
   static const Color systemGreen = CupertinoColors.systemGreen;
@@ -27,7 +56,6 @@ class IosColors {
   static const Color lightSeparator = Color(0xFFC6C6C8);
 
   // Status Colors
-  static const Color statusGreen = Color(0xFF30D158);
   static const Color statusAmber = Color(0xFFFF9F0A);
   static const Color statusOrange = Color(0xFFFF9500);
   static const Color statusRed = Color(0xFFFF453A);

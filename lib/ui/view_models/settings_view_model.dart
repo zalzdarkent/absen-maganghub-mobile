@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import '../../core/theme/app_accent_theme.dart';
+import '../../core/theme/ios_colors.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../domain/models/repository_model.dart';
 import '../../domain/models/settings_model.dart';
@@ -21,6 +23,8 @@ class SettingsViewModel extends ChangeNotifier {
   int _sqliteEntryCount = 0;
   bool _isReimporting = false;
 
+  AccentColorTheme _accentTheme = AccentColorTheme.emerald;
+
   SettingsModel get settings => _settings;
   String get serverUrl => _serverUrl;
   bool get isStandalone => _isStandalone;
@@ -33,10 +37,31 @@ class SettingsViewModel extends ChangeNotifier {
   Map<String, dynamic>? get testResult => _testResult;
   String? get errorMessage => _errorMessage;
 
+  AccentColorTheme get accentTheme => _accentTheme;
+  bool get isSusanooTheme => _accentTheme == AccentColorTheme.susanoo;
+
   Future<void> init() async {
     _isStandalone = await settingsRepository.isStandalone();
     _serverUrl = await settingsRepository.getSavedServerUrl() ?? '';
+    final savedThemeStr = await settingsRepository.getAccentTheme();
+    _accentTheme = AccentColorThemeExtension.fromString(savedThemeStr);
+    IosColors.setAccentTheme(_accentTheme);
     await loadSettings();
+  }
+
+  Future<void> setAccentTheme(AccentColorTheme theme) async {
+    if (_accentTheme == theme) return;
+    _accentTheme = theme;
+    IosColors.setAccentTheme(theme);
+    await settingsRepository.setAccentTheme(theme.name);
+    notifyListeners();
+  }
+
+  Future<void> toggleAccentTheme() async {
+    final next = _accentTheme == AccentColorTheme.emerald
+        ? AccentColorTheme.susanoo
+        : AccentColorTheme.emerald;
+    await setAccentTheme(next);
   }
 
   Future<void> toggleStandalone(bool value) async {

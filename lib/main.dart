@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'core/theme/app_accent_theme.dart';
+import 'core/theme/ios_colors.dart';
 import 'core/theme/ios_theme.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/logbook_repository.dart';
@@ -62,6 +64,9 @@ void main() async {
   final historyViewModel = HistoryViewModel(logbookRepository: logbookRepository);
   final settingsViewModel = SettingsViewModel(settingsRepository: settingsRepository);
 
+  final savedAccent = await localStorageService.getAccentTheme();
+  IosColors.setAccentTheme(AccentColorThemeExtension.fromString(savedAccent));
+
   runApp(MagangHubApp(
     appState: appState,
     authViewModel: authViewModel,
@@ -89,16 +94,21 @@ class MagangHubApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
-      title: 'MagangHub Logbook',
-      debugShowCheckedModeBanner: false,
-      theme: IosTheme.darkTheme(),
-      home: SplashScreen(
-        authViewModel: authViewModel,
-        generateViewModel: generateViewModel,
-        historyViewModel: historyViewModel,
-        settingsViewModel: settingsViewModel,
-      ),
+    return ValueListenableBuilder(
+      valueListenable: IosColors.accentThemeNotifier,
+      builder: (context, _, child) {
+        return CupertinoApp(
+          title: 'MagangHub Logbook',
+          debugShowCheckedModeBanner: false,
+          theme: IosTheme.darkTheme(),
+          home: SplashScreen(
+            authViewModel: authViewModel,
+            generateViewModel: generateViewModel,
+            historyViewModel: historyViewModel,
+            settingsViewModel: settingsViewModel,
+          ),
+        );
+      },
     );
   }
 }

@@ -132,7 +132,7 @@ class _AiProviderSectionState extends State<AiProviderSection> {
                   color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(CupertinoIcons.sparkles, size: 16, color: IosColors.statusGreen),
+                child: Icon(CupertinoIcons.sparkles, size: 16, color: IosColors.statusGreen),
               ),
               const SizedBox(width: 10),
               const Text(
@@ -158,7 +158,7 @@ class _AiProviderSectionState extends State<AiProviderSection> {
           // Provider selector
           CupertinoSlidingSegmentedControl<String>(
             groupValue: _provider,
-            children: const {
+            children: {
               'local': Padding(
                 padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 child: Row(

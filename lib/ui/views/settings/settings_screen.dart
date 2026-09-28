@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/theme/ios_colors.dart';
 import '../../view_models/auth_view_model.dart';
 import '../../view_models/settings_view_model.dart';
 import 'widgets/about_section.dart';
+import 'widgets/accent_theme_section.dart';
 import 'widgets/ai_provider_section.dart';
 import 'widgets/repo_manager_section.dart';
 import 'widgets/user_account_section.dart';
@@ -37,7 +39,7 @@ class SettingsScreen extends StatelessWidget {
                     color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
                     borderRadius: BorderRadius.circular(7),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     CupertinoIcons.gear_alt_fill,
                     size: 15,
                     color: IosColors.statusGreen,
@@ -53,6 +55,46 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            trailing: CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(0, 28),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                viewModel.toggleAccentTheme();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: IosColors.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: IosColors.primary.withValues(alpha: 0.35),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      viewModel.isSusanooTheme
+                          ? CupertinoIcons.flame_fill
+                          : CupertinoIcons.sparkles,
+                      size: 12,
+                      color: IosColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      viewModel.isSusanooTheme ? 'Susanoo' : 'Emerald',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: IosColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           child: SafeArea(
@@ -73,6 +115,8 @@ class SettingsScreen extends StatelessWidget {
                           authViewModel: authViewModel,
                           onLoggedOut: onLoggedOut,
                         ),
+                        const SizedBox(height: 16),
+                        AccentThemeSection(viewModel: viewModel),
                         const SizedBox(height: 16),
                         AiProviderSection(viewModel: viewModel),
                         const SizedBox(height: 16),

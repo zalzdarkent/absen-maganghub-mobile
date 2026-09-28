@@ -173,7 +173,7 @@ class IosCalendarGrid extends StatelessWidget {
                   Container(
                     width: 6,
                     height: 6,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: IosColors.statusGreen,
                       shape: BoxShape.circle,
                     ),

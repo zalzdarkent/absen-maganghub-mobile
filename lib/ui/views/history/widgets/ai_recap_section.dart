@@ -43,7 +43,7 @@ class _AiRecapSectionState extends State<AiRecapSection> {
                   color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(CupertinoIcons.sparkles, size: 16, color: IosColors.statusGreen),
+                child: Icon(CupertinoIcons.sparkles, size: 16, color: IosColors.statusGreen),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -223,7 +223,7 @@ class _AiRecapSectionState extends State<AiRecapSection> {
                     children: [
                       Row(
                         children: [
-                          const Icon(CupertinoIcons.doc_text_fill, size: 14, color: IosColors.statusGreen),
+                          Icon(CupertinoIcons.doc_text_fill, size: 14, color: IosColors.statusGreen),
                           const SizedBox(width: 6),
                           Text(
                             recap.rentang.isNotEmpty ? recap.rentang : 'Periode Magang',
@@ -291,7 +291,7 @@ class _AiRecapSectionState extends State<AiRecapSection> {
                           children: [
                             Text(
                               '${i + 1}. ',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: IosColors.statusGreen),
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: IosColors.statusGreen),
                             ),
                             Expanded(
                               child: Text(

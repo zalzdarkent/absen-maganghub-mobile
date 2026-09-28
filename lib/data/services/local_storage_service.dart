@@ -85,6 +85,18 @@ class LocalStorageService {
     await prefs.setString(_draftKey(userId), jsonEncode(payload));
   }
 
+  static const String _keyAccentTheme = 'maganghub:accent_theme';
+
+  Future<String> getAccentTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyAccentTheme) ?? 'emerald';
+  }
+
+  Future<void> setAccentTheme(String theme) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAccentTheme, theme);
+  }
+
   Future<void> clearLocalDraft({int? userId}) async {
     final prefs = await SharedPreferences.getInstance();
     if (userId != null) {

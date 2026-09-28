@@ -38,7 +38,7 @@ class CommitListSection extends StatelessWidget {
                         color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         CupertinoIcons.chevron_left_slash_chevron_right,
                         size: 16,
                         color: IosColors.statusGreen,
@@ -318,7 +318,7 @@ class CommitListSection extends StatelessWidget {
                         ),
                         child: Text(
                           commit.displaySha,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Courier',
                             fontSize: 11,
                             fontWeight: FontWeight.bold,

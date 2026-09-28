@@ -83,7 +83,7 @@ class _RepoManagerSectionState extends State<RepoManagerSection> {
                       color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(CupertinoIcons.folder_badge_plus, size: 16, color: IosColors.statusGreen),
+                    child: Icon(CupertinoIcons.folder_badge_plus, size: 16, color: IosColors.statusGreen),
                   ),
                   const SizedBox(width: 10),
                   Text(
@@ -261,7 +261,7 @@ class _RepoManagerSectionState extends State<RepoManagerSection> {
                           color: isDark ? const Color(0xFF21262D) : const Color(0xFFEAEFF5),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(CupertinoIcons.folder, size: 14, color: IosColors.statusGreen),
+                        child: Icon(CupertinoIcons.folder, size: 14, color: IosColors.statusGreen),
                       ),
                       const SizedBox(width: 10),
                       Expanded(

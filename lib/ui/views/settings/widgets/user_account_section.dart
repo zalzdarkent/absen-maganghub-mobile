@@ -72,7 +72,7 @@ class UserAccountSection extends StatelessWidget {
                       color: IosColors.statusGreen.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       CupertinoIcons.person_crop_circle_fill,
                       size: 16,
                       color: IosColors.statusGreen,
@@ -112,11 +112,8 @@ class UserAccountSection extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF1E2922),
-                        Color(0xFF0F1511),
-                      ],
+                    gradient: LinearGradient(
+                      colors: IosColors.avatarGradient,
                     ),
                     border: Border.all(
                       color: IosColors.statusGreen.withValues(alpha: 0.6),
@@ -132,7 +129,7 @@ class UserAccountSection extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Text(
                     initial,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: IosColors.statusGreen,

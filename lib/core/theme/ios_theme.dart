@@ -3,26 +3,26 @@ import 'ios_colors.dart';
 
 class IosTheme {
   static CupertinoThemeData darkTheme() {
-    return const CupertinoThemeData(
+    return CupertinoThemeData(
       brightness: Brightness.dark,
-      primaryColor: IosColors.statusGreen, // MagangHub emerald accent
-      primaryContrastingColor: CupertinoColors.black,
+      primaryColor: IosColors.primary,
+      primaryContrastingColor: IosColors.onPrimary,
       scaffoldBackgroundColor: IosColors.darkBackground,
-      barBackgroundColor: Color(0xCC1C1C1E), // Frosted glass translucency
-      textTheme: CupertinoTextThemeData(
+      barBackgroundColor: const Color(0xCC1C1C1E), // Frosted glass translucency
+      textTheme: const CupertinoTextThemeData(
         primaryColor: CupertinoColors.white,
       ),
     );
   }
 
   static CupertinoThemeData lightTheme() {
-    return const CupertinoThemeData(
+    return CupertinoThemeData(
       brightness: Brightness.light,
-      primaryColor: IosColors.statusGreen,
-      primaryContrastingColor: CupertinoColors.white,
+      primaryColor: IosColors.primary,
+      primaryContrastingColor: IosColors.onPrimary,
       scaffoldBackgroundColor: IosColors.lightBackground,
-      barBackgroundColor: Color(0xCCF8F8F8),
-      textTheme: CupertinoTextThemeData(
+      barBackgroundColor: const Color(0xCCF8F8F8),
+      textTheme: const CupertinoTextThemeData(
         primaryColor: CupertinoColors.black,
       ),
     );

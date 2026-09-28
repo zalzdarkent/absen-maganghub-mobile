@@ -140,7 +140,7 @@ class SqliteDatabaseSection extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       '$count Entri Terdata',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: IosColors.statusGreen,
@@ -155,7 +155,7 @@ class SqliteDatabaseSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: IosColors.statusGreen, width: 0.8),
                   ),
-                  child: const Text(
+                  child: Text(
                     'SQLite OK',
                     style: TextStyle(
                       fontSize: 11,
