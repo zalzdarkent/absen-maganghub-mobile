@@ -5,6 +5,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3/open.dart';
 import 'package:absen_maganghub/data/services/sqlite_database_service.dart';
 import 'package:absen_maganghub/domain/models/logbook_entry_model.dart';
+import 'package:absen_maganghub/domain/models/repository_model.dart';
 
 void main() {
   setUpAll(() {
@@ -137,6 +138,57 @@ void main() {
       );
       final loggedInEntries = await service.loadEntries(userId: loggedIn.id);
       expect(loggedInEntries.length, 13);
+    });
+
+    test('New user starts with completely empty repositories and can save repos to SQLite', () async {
+      final dbName = 'test_settings_${DateTime.now().microsecondsSinceEpoch}.db';
+      final service = SqliteDatabaseService(dbName: dbName);
+
+      // Register a new user
+      final user = await service.registerUser(
+        username: 'budisantoso',
+        email: 'budi@example.com',
+        password: 'password123',
+        name: 'Budi Santoso',
+      );
+
+      // Load settings for fresh user -> must be completely empty repositories
+      final settings = await service.loadSettings(userId: user.id);
+      expect(settings.repositories, isEmpty);
+      expect(settings.activeRepoId, isNull);
+      expect(settings.defaultRepoIds, isEmpty);
+
+      // Save custom repository for this user
+      final customRepo = Repository(
+        id: 'repo-12345',
+        label: 'My Custom Repo',
+        url: 'https://github.com/budisantoso/my-custom-project.git',
+      );
+      final updatedSettings = settings.copyWith(
+        repositories: [customRepo],
+        activeRepoId: customRepo.id,
+        defaultRepoIds: [customRepo.id],
+      );
+      await service.saveSettings(updatedSettings, userId: user.id);
+
+      // Reload settings for this user
+      final reloaded = await service.loadSettings(userId: user.id);
+      expect(reloaded.repositories.length, 1);
+      expect(reloaded.repositories.first.label, 'My Custom Repo');
+      expect(reloaded.repositories.first.url, 'https://github.com/budisantoso/my-custom-project.git');
+      expect(reloaded.activeRepoId, 'repo-12345');
+      expect(reloaded.defaultRepoIds, ['repo-12345']);
+
+      // Register another user
+      final user2 = await service.registerUser(
+        username: 'dewi',
+        email: 'dewi@example.com',
+        password: 'password123',
+        name: 'Dewi',
+      );
+      // User 2 must start with empty repositories as well
+      final user2Settings = await service.loadSettings(userId: user2.id);
+      expect(user2Settings.repositories, isEmpty);
     });
   });
 }

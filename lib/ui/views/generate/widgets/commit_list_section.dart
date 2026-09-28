@@ -57,7 +57,9 @@ class CommitListSection extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          isLoading ? 'Memuat sinkron Git…' : '$count commit • sinkron Git',
+                          isLoading
+                              ? 'Memuat sinkron Git…'
+                              : (repos.isEmpty ? '0 repo terdaftar' : '$count commit • sinkron Git'),
                           style: TextStyle(
                             fontFamily: 'Courier',
                             fontSize: 11,
@@ -190,6 +192,37 @@ class CommitListSection extends StatelessWidget {
               padding: EdgeInsets.all(28),
               child: Center(
                 child: CupertinoActivityIndicator(radius: 12),
+              ),
+            )
+          else if (repos.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Column(
+                children: [
+                  Icon(
+                    CupertinoIcons.folder_badge_plus,
+                    size: 34,
+                    color: IosColors.tertiaryLabel(context),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Belum Ada Repository Git',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Daftarkan repository Git di menu Pengaturan > Kelola Git Repo untuk sinkronisasi commit otomatis, atau kamu tetap dapat menyusun logbook menggunakan tombol Catatan Manual di bawah.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: IosColors.secondaryLabel(context),
+                      height: 1.35,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             )
           else if (count == 0)

@@ -30,7 +30,20 @@ class LogbookRepository {
     final standalone = await _isStandalone();
     if (standalone) {
       final settings = await settingsRepository.fetchSettings();
-      final selected = repoIds ?? (settings.defaultRepoIds.isNotEmpty ? settings.defaultRepoIds : [settings.repositories.first.id]);
+      if (settings.repositories.isEmpty) {
+        return const StatusResponse(
+          gitLogs: '',
+          commits: [],
+          detailed: '',
+          hasCommitsToday: false,
+          alreadyGenerated: false,
+          repoIds: [],
+        );
+      }
+      final selected = repoIds ??
+          (settings.defaultRepoIds.isNotEmpty
+              ? settings.defaultRepoIds
+              : [settings.repositories.first.id]);
       return githubService.fetchCombinedStatus(
         repositories: settings.repositories,
         selectedRepoIds: selected,
@@ -56,8 +69,11 @@ class LogbookRepository {
   Future<Map<String, dynamic>> generateDraft({List<String>? repoIds}) async {
     final standalone = await _isStandalone();
     if (standalone) {
-      final status = await fetchStatus(repoIds: repoIds);
       final settings = await settingsRepository.fetchSettings();
+      if (settings.repositories.isEmpty) {
+        throw Exception('Belum ada repositori Git yang terhubung. Silakan tambahkan di menu Pengaturan.');
+      }
+      final status = await fetchStatus(repoIds: repoIds);
       final draft = await llmService.generateDraft(
         gitLogs: status.gitLogs,
         diffSection: status.detailed,

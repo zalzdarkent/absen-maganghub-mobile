@@ -112,6 +112,8 @@ class GenerateViewModel extends ChangeNotifier {
         _selectedRepoIds = [settings.activeRepoId!];
       } else if (_repositories.isNotEmpty) {
         _selectedRepoIds = [_repositories.first.id];
+      } else {
+        _selectedRepoIds = [];
       }
       notifyListeners();
     } catch (_) {}
@@ -140,6 +142,22 @@ class GenerateViewModel extends ChangeNotifier {
   }
 
   Future<void> loadStatus() async {
+    if (_repositories.isEmpty) {
+      await _loadSettingsAndRepos();
+    }
+
+    if (_repositories.isEmpty) {
+      _isLoadingCommits = false;
+      _errorMessage = null;
+      _gitLogs = '';
+      _commits = [];
+      _detailed = '';
+      _statusKind = StatusKind.idle;
+      _statusText = 'belum ada repo';
+      notifyListeners();
+      return;
+    }
+
     _isLoadingCommits = true;
     _errorMessage = null;
     notifyListeners();
@@ -183,6 +201,7 @@ class GenerateViewModel extends ChangeNotifier {
   }
 
   Future<void> _checkAutoDraft() async {
+    if (_repositories.isEmpty) return;
     if (_draft != null && !_draft!.isEmpty) return;
     try {
       final data = await logbookRepository.checkAutoDraft(

@@ -11,7 +11,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3/open.dart';
 import '../../domain/models/logbook_entry_model.dart';
-import '../../domain/models/repository_model.dart';
 import '../../domain/models/settings_model.dart';
 import '../../domain/models/user_model.dart';
 import '../datasources/initial_logbook_data.dart';
@@ -32,25 +31,9 @@ class SqliteDatabaseService {
     localLlmApiKey: '',
     geminiModel: 'gemini-3.6-flash',
     geminiApiKey: '',
-    activeRepoId: 'tmp-1788745953894',
-    defaultRepoIds: ['tmp-1788745953894'],
-    repositories: [
-      Repository(
-        id: 'tmp-1788745953894',
-        label: 'Absen Monev',
-        url: 'https://github.com/zalzdarkent/absen-maganghub.git',
-      ),
-      Repository(
-        id: 'zalzdarkent-stockmon-suqc',
-        label: 'StockMonitoring',
-        url: 'https://github.com/zalzdarkent/StockMonitoring-React.git',
-      ),
-      Repository(
-        id: 'tmp-1789550473623',
-        label: 'Django',
-        url: 'https://github.com/zalzdarkent/ERDJANGO.git',
-      ),
-    ],
+    activeRepoId: null,
+    defaultRepoIds: [],
+    repositories: [],
   );
 
   Future<Database> get database async {
@@ -685,6 +668,38 @@ class SqliteDatabaseService {
     );
   }
 
+  static SettingsModel _cleanLegacyDemoRepos(SettingsModel settings) {
+    const demoIds = {
+      'tmp-1788745953894',
+      'zalzdarkent-stockmon-suqc',
+      'tmp-1789550473623',
+    };
+    final cleanedRepos = settings.repositories.where((r) {
+      if (demoIds.contains(r.id)) return false;
+      final lower = r.url.toLowerCase();
+      if (lower.contains('zalzdarkent/absen-maganghub-mobile') ||
+          lower.contains('zalzdarkent/stockmonitoring-react') ||
+          lower.contains('zalzdarkent/erdjango')) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    final validIds = cleanedRepos.map((r) => r.id).toSet();
+    final cleanedDefaultIds =
+        settings.defaultRepoIds.where((id) => validIds.contains(id)).toList();
+    final cleanedActiveId = (settings.activeRepoId != null &&
+            validIds.contains(settings.activeRepoId!))
+        ? settings.activeRepoId
+        : (cleanedRepos.isNotEmpty ? cleanedRepos.first.id : null);
+
+    return settings.copyWith(
+      repositories: cleanedRepos,
+      defaultRepoIds: cleanedDefaultIds,
+      activeRepoId: cleanedActiveId,
+    );
+  }
+
   Future<SettingsModel> loadSettings({int? userId}) async {
     final db = await database;
     if (userId != null) {
@@ -696,9 +711,12 @@ class SqliteDatabaseService {
       if (userRows.isNotEmpty) {
         try {
           final json = jsonDecode(userRows.first['value'] as String);
-          return SettingsModel.fromJson(json as Map<String, dynamic>);
+          final loaded = SettingsModel.fromJson(json as Map<String, dynamic>);
+          return _cleanLegacyDemoRepos(loaded);
         } catch (_) {}
       }
+      // New user starts completely fresh with default empty repositories
+      return defaultSettings;
     }
 
     // Fallback to legacy global settings (from v1)
@@ -710,7 +728,8 @@ class SqliteDatabaseService {
     if (rows.isEmpty) return defaultSettings;
     try {
       final json = jsonDecode(rows.first['value'] as String);
-      return SettingsModel.fromJson(json as Map<String, dynamic>);
+      final loaded = SettingsModel.fromJson(json as Map<String, dynamic>);
+      return _cleanLegacyDemoRepos(loaded);
     } catch (_) {
       return defaultSettings;
     }
