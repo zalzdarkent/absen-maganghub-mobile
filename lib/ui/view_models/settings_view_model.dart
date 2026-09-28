@@ -160,8 +160,17 @@ class SettingsViewModel extends ChangeNotifier {
         url: url,
       );
       final updated = [...current, newRepo];
+      final activeId = _settings.activeRepoId ?? newRepo.id;
+      final defaultIds = _settings.defaultRepoIds.isNotEmpty
+          ? (_settings.defaultRepoIds.contains(newRepo.id)
+              ? _settings.defaultRepoIds
+              : [..._settings.defaultRepoIds, newRepo.id])
+          : [newRepo.id];
+
       await settingsRepository.saveSettings({
         'repositories': updated.map((r) => r.toJson()).toList(),
+        'activeRepoId': activeId,
+        'defaultRepoIds': defaultIds,
       });
       await loadSettings();
     } finally {
@@ -172,8 +181,15 @@ class SettingsViewModel extends ChangeNotifier {
 
   Future<void> deleteRepository(String id) async {
     final updated = _settings.repositories.where((r) => r.id != id).toList();
+    final activeId = _settings.activeRepoId == id
+        ? (updated.isNotEmpty ? updated.first.id : null)
+        : _settings.activeRepoId;
+    final defaultIds = _settings.defaultRepoIds.where((x) => x != id).toList();
+
     await settingsRepository.saveSettings({
       'repositories': updated.map((r) => r.toJson()).toList(),
+      'activeRepoId': activeId,
+      'defaultRepoIds': defaultIds,
     });
     await loadSettings();
   }

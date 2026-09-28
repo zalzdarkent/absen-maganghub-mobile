@@ -669,20 +669,15 @@ class SqliteDatabaseService {
   }
 
   static SettingsModel _cleanLegacyDemoRepos(SettingsModel settings) {
-    const demoIds = {
+    const legacyDemoIds = {
       'tmp-1788745953894',
       'zalzdarkent-stockmon-suqc',
       'tmp-1789550473623',
     };
+    // Only remove if it has one of the 3 hardcoded legacy demo IDs.
+    // Any repository added by the user (which gets 'repo-<timestamp>') is strictly preserved!
     final cleanedRepos = settings.repositories.where((r) {
-      if (demoIds.contains(r.id)) return false;
-      final lower = r.url.toLowerCase();
-      if (lower.contains('zalzdarkent/absen-maganghub-mobile') ||
-          lower.contains('zalzdarkent/stockmonitoring-react') ||
-          lower.contains('zalzdarkent/erdjango')) {
-        return false;
-      }
-      return true;
+      return !legacyDemoIds.contains(r.id);
     }).toList();
 
     final validIds = cleanedRepos.map((r) => r.id).toSet();

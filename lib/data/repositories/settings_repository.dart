@@ -58,8 +58,12 @@ class SettingsRepository {
         geminiApiKey: payload['apiKey'] as String? ?? payload['geminiApiKey'] as String?,
         geminiModel: payload['geminiModel'] as String?,
         repositories: repos,
-        activeRepoId: payload['activeRepoId'] as String?,
-        defaultRepoIds: payload['defaultRepoIds'] != null ? List<String>.from(payload['defaultRepoIds']) : null,
+        activeRepoId: payload.containsKey('activeRepoId')
+            ? payload['activeRepoId'] as String?
+            : current.activeRepoId,
+        defaultRepoIds: payload.containsKey('defaultRepoIds')
+            ? (payload['defaultRepoIds'] != null ? List<String>.from(payload['defaultRepoIds']) : [])
+            : current.defaultRepoIds,
       );
 
       await standaloneStorageService.saveSettings(updated);

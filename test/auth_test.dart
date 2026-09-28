@@ -190,5 +190,40 @@ void main() {
       final user2Settings = await service.loadSettings(userId: user2.id);
       expect(user2Settings.repositories, isEmpty);
     });
+
+    test('User can register repository with zalzdarkent project url without being filtered out', () async {
+      final dbName = 'test_zalz_repo_${DateTime.now().microsecondsSinceEpoch}.db';
+      final service = SqliteDatabaseService(dbName: dbName);
+
+      final user = await service.registerUser(
+        username: 'zalzdarkent',
+        email: 'zalz@example.com',
+        password: 'password123',
+      );
+
+      final settings = await service.loadSettings(userId: user.id);
+      expect(settings.repositories, isEmpty);
+
+      final newRepo = Repository(
+        id: 'repo-${DateTime.now().millisecondsSinceEpoch}',
+        label: 'Absen MagangHub Mobile',
+        url: 'https://github.com/zalzdarkent/absen-maganghub-mobile.git',
+      );
+
+      await service.saveSettings(
+        settings.copyWith(
+          repositories: [newRepo],
+          activeRepoId: newRepo.id,
+          defaultRepoIds: [newRepo.id],
+        ),
+        userId: user.id,
+      );
+
+      final loaded = await service.loadSettings(userId: user.id);
+      expect(loaded.repositories.length, 1);
+      expect(loaded.repositories.first.url, 'https://github.com/zalzdarkent/absen-maganghub-mobile.git');
+      expect(loaded.repositories.first.label, 'Absen MagangHub Mobile');
+      expect(loaded.activeRepoId, newRepo.id);
+    });
   });
 }
