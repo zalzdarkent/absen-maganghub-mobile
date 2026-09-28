@@ -156,7 +156,7 @@ class GenerateScreen extends StatelessWidget {
                                     viewModel: viewModel,
                                     onSaved: onSaved,
                                   ),
-                                  const SizedBox(height: 32),
+                                  const SizedBox(height: 96),
                                 ],
                               ),
                           ],

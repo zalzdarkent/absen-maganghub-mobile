@@ -6,15 +6,25 @@ import '../../../core/widgets/ios_button.dart';
 import '../../../core/widgets/ios_card.dart';
 import '../../../core/widgets/ios_toast.dart';
 import '../../view_models/auth_view_model.dart';
+import '../../view_models/generate_view_model.dart';
+import '../../view_models/history_view_model.dart';
+import '../../view_models/settings_view_model.dart';
+import '../main_navigation_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   final AuthViewModel authViewModel;
-  final VoidCallback onAuthenticated;
+  final GenerateViewModel? generateViewModel;
+  final HistoryViewModel? historyViewModel;
+  final SettingsViewModel? settingsViewModel;
+  final VoidCallback? onAuthenticated;
 
   const AuthScreen({
     super.key,
     required this.authViewModel,
-    required this.onAuthenticated,
+    this.generateViewModel,
+    this.historyViewModel,
+    this.settingsViewModel,
+    this.onAuthenticated,
   });
 
   @override
@@ -24,6 +34,7 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   // 0: Login, 1: Register
   int _selectedTab = 0;
+  bool _isSubmitting = false;
 
   // Controllers
   final _usernameController = TextEditingController();
@@ -46,6 +57,7 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _switchTab(int index) {
+    if (_isSubmitting || widget.authViewModel.isLoading) return;
     if (_selectedTab != index) {
       HapticFeedback.selectionClick();
       setState(() {
@@ -55,7 +67,45 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  void _navigateToHome() {
+    widget.generateViewModel?.init();
+    widget.historyViewModel?.loadEntries();
+    widget.settingsViewModel?.loadSettings();
+    widget.onAuthenticated?.call();
+
+    if (!mounted) return;
+
+    if (widget.generateViewModel != null &&
+        widget.historyViewModel != null &&
+        widget.settingsViewModel != null) {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 650),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              MainNavigationScreen(
+            generateViewModel: widget.generateViewModel!,
+            historyViewModel: widget.historyViewModel!,
+            settingsViewModel: widget.settingsViewModel!,
+            authViewModel: widget.authViewModel,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: child,
+            );
+          },
+        ),
+      );
+    }
+  }
+
   Future<void> _submit() async {
+    if (_isSubmitting || widget.authViewModel.isLoading) return;
+
     widget.authViewModel.clearMessages();
     FocusScope.of(context).unfocus();
 
@@ -73,18 +123,37 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
 
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      final stopwatch = Stopwatch()..start();
       final success = await widget.authViewModel.login(
         usernameOrEmail: identifier,
         password: password,
       );
 
-      if (success && mounted) {
+      // Keep iOS activity spinner visible smoothly for at least 650ms
+      final elapsed = stopwatch.elapsedMilliseconds;
+      if (elapsed < 650) {
+        await Future.delayed(Duration(milliseconds: 650 - elapsed));
+      }
+
+      if (!mounted) return;
+
+      if (success) {
         IosToast.show(
           context,
           'Selamat datang kembali, ${widget.authViewModel.currentUser?.displayName}!',
           type: ToastType.success,
         );
-        widget.onAuthenticated();
+        await Future.delayed(const Duration(milliseconds: 250));
+        if (!mounted) return;
+        _navigateToHome();
+      } else {
+        setState(() {
+          _isSubmitting = false;
+        });
       }
     } else {
       // Register
@@ -112,6 +181,11 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
 
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      final stopwatch = Stopwatch()..start();
       final success = await widget.authViewModel.register(
         username: username,
         email: email,
@@ -119,13 +193,27 @@ class _AuthScreenState extends State<AuthScreen> {
         name: name.isNotEmpty ? name : null,
       );
 
-      if (success && mounted) {
+      // Keep iOS activity spinner visible smoothly for at least 650ms
+      final elapsed = stopwatch.elapsedMilliseconds;
+      if (elapsed < 650) {
+        await Future.delayed(Duration(milliseconds: 650 - elapsed));
+      }
+
+      if (!mounted) return;
+
+      if (success) {
         IosToast.show(
           context,
           'Akun berhasil dibuat! Selamat bergabung.',
           type: ToastType.success,
         );
-        widget.onAuthenticated();
+        await Future.delayed(const Duration(milliseconds: 250));
+        if (!mounted) return;
+        _navigateToHome();
+      } else {
+        setState(() {
+          _isSubmitting = false;
+        });
       }
     }
   }
@@ -219,7 +307,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          'MagangHub',
+                          'Absen MagangHub',
                           style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w700,
@@ -296,6 +384,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ListenableBuilder(
                       listenable: widget.authViewModel,
                       builder: (context, _) {
+                        final isBusy = _isSubmitting || widget.authViewModel.isLoading;
                         return IosCard(
                           padding: const EdgeInsets.all(20),
                           child: Column(
@@ -341,7 +430,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               if (_selectedTab == 1) ...[
                                 _FieldLabel(label: 'Nama Lengkap (Opsional)'),
                                 CupertinoTextField(
+                                  key: const Key('auth_input_name'),
                                   controller: _nameController,
+                                  readOnly: _isSubmitting || widget.authViewModel.isLoading,
                                   placeholder: 'cth: Alif Nur',
                                   prefix: const Padding(
                                     padding: EdgeInsets.only(left: 12),
@@ -360,7 +451,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
                                 _FieldLabel(label: 'Email Aktif *'),
                                 CupertinoTextField(
+                                  key: const Key('auth_input_email'),
                                   controller: _emailController,
+                                  readOnly: _isSubmitting || widget.authViewModel.isLoading,
                                   keyboardType: TextInputType.emailAddress,
                                   placeholder: 'cth: alif@gmail.com',
                                   prefix: const Padding(
@@ -384,7 +477,9 @@ class _AuthScreenState extends State<AuthScreen> {
                                 label: _selectedTab == 0 ? 'Username atau Email *' : 'Username *',
                               ),
                               CupertinoTextField(
+                                key: const Key('auth_input_username'),
                                 controller: _usernameController,
+                                readOnly: _isSubmitting || widget.authViewModel.isLoading,
                                 placeholder: _selectedTab == 0 ? 'Masukkan username atau email' : 'cth: zalzdarkent',
                                 prefix: const Padding(
                                     padding: EdgeInsets.only(left: 12),
@@ -404,7 +499,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               // Password
                               _FieldLabel(label: 'Kata Sandi *'),
                               CupertinoTextField(
+                                key: const Key('auth_input_password'),
                                 controller: _passwordController,
+                                readOnly: _isSubmitting || widget.authViewModel.isLoading,
                                 obscureText: _obscurePassword,
                                 placeholder: 'Minimal 6 karakter',
                                 prefix: const Padding(
@@ -442,7 +539,9 @@ class _AuthScreenState extends State<AuthScreen> {
                                 const SizedBox(height: 14),
                                 _FieldLabel(label: 'Ulangi Kata Sandi *'),
                                 CupertinoTextField(
+                                  key: const Key('auth_input_confirm_password'),
                                   controller: _confirmPasswordController,
+                                  readOnly: _isSubmitting || widget.authViewModel.isLoading,
                                   obscureText: _obscureConfirmPassword,
                                   placeholder: 'Ketik ulang kata sandi',
                                   prefix: const Padding(
@@ -479,7 +578,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
                               // Submit Button
                               IosButton(
+                                key: const Key('auth_btn_submit'),
                                 text: _selectedTab == 0 ? 'Masuk' : 'Daftar Sekarang',
+                                loadingText: _selectedTab == 0 ? 'Sedang Masuk...' : 'Sedang Mendaftar...',
                                 icon: Icon(
                                   _selectedTab == 0
                                       ? CupertinoIcons.arrow_right_circle_fill
@@ -488,8 +589,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ),
                                 variant: IosButtonVariant.primary,
                                 size: IosButtonSize.large,
-                                isLoading: widget.authViewModel.isLoading,
-                                onPressed: _submit,
+                                isLoading: isBusy,
+                                onPressed: isBusy ? null : _submit,
                               ),
                             ],
                           ),
@@ -508,13 +609,6 @@ class _AuthScreenState extends State<AuthScreen> {
                           color: IosColors.statusGreen,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          'Data akun & logbook tersimpan lokal di SQLite HP kamu',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: IosColors.secondaryLabel(context),
-                          ),
-                        ),
                       ],
                     ),
                   ],

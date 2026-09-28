@@ -79,7 +79,7 @@ class SettingsScreen extends StatelessWidget {
                         RepoManagerSection(viewModel: viewModel),
                         const SizedBox(height: 16),
                         AboutSection(viewModel: viewModel),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 96),
                       ],
                     ),
                   ),

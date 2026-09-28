@@ -139,6 +139,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _openMainScreen() {
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 650),
@@ -148,26 +149,6 @@ class _SplashScreenState extends State<SplashScreen>
           historyViewModel: widget.historyViewModel,
           settingsViewModel: widget.settingsViewModel,
           authViewModel: widget.authViewModel,
-          onLoggedOut: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              PageRouteBuilder(
-                transitionDuration: const Duration(milliseconds: 400),
-                pageBuilder: (context, anim, secAnim) => AuthScreen(
-                  authViewModel: widget.authViewModel,
-                  onAuthenticated: () {
-                    widget.generateViewModel.init();
-                    widget.historyViewModel.loadEntries();
-                    widget.settingsViewModel.loadSettings();
-                    _openMainScreen();
-                  },
-                ),
-                transitionsBuilder: (context, anim, secAnim, child) {
-                  return FadeTransition(opacity: anim, child: child);
-                },
-              ),
-              (route) => false,
-            );
-          },
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
@@ -184,18 +165,16 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _openAuthScreen() {
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 650),
         pageBuilder: (context, animation, secondaryAnimation) =>
             AuthScreen(
           authViewModel: widget.authViewModel,
-          onAuthenticated: () {
-            widget.generateViewModel.init();
-            widget.historyViewModel.loadEntries();
-            widget.settingsViewModel.loadSettings();
-            _openMainScreen();
-          },
+          generateViewModel: widget.generateViewModel,
+          historyViewModel: widget.historyViewModel,
+          settingsViewModel: widget.settingsViewModel,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(

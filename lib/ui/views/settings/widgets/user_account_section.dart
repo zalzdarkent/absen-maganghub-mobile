@@ -88,23 +88,7 @@ class UserAccountSection extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'UID: #${user.id}',
-                  style: const TextStyle(
-                    fontFamily: 'Courier',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: IosColors.statusGreen,
-                  ),
-                ),
-              ),
+              )
             ],
           ),
           const SizedBox(height: 14),

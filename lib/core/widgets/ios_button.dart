@@ -14,6 +14,7 @@ class IosButton extends StatelessWidget {
   final IosButtonVariant variant;
   final IosButtonSize size;
   final bool isLoading;
+  final String? loadingText;
   final bool isFullWidth;
 
   const IosButton({
@@ -25,6 +26,7 @@ class IosButton extends StatelessWidget {
     this.variant = IosButtonVariant.primary,
     this.size = IosButtonSize.medium,
     this.isLoading = false,
+    this.loadingText,
     this.isFullWidth = false,
   });
 
@@ -86,7 +88,18 @@ class IosButton extends StatelessWidget {
         break;
     }
 
-    final isDisabled = onPressed == null || isLoading;
+    final isActuallyDisabled = onPressed == null && !isLoading;
+
+    Color buttonDisabledColor;
+    if (isLoading) {
+      if (variant == IosButtonVariant.outline) {
+        buttonDisabledColor = const Color(0x00000000);
+      } else {
+        buttonDisabledColor = bg.withValues(alpha: 0.88);
+      }
+    } else {
+      buttonDisabledColor = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA);
+    }
 
     return SizedBox(
       height: height,
@@ -95,9 +108,9 @@ class IosButton extends StatelessWidget {
         padding: EdgeInsets.zero,
         borderRadius: BorderRadius.circular(radius),
         color: bg,
-        disabledColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
+        disabledColor: buttonDisabledColor,
         pressedOpacity: 0.65,
-        onPressed: isDisabled
+        onPressed: (isActuallyDisabled || isLoading)
             ? null
             : () {
                 HapticFeedback.lightImpact();
@@ -113,9 +126,28 @@ class IosButton extends StatelessWidget {
                 )
               : null,
           child: isLoading
-              ? CupertinoActivityIndicator(
-                  color: fg,
-                  radius: size == IosButtonSize.small ? 7 : 10,
+              ? Row(
+                  mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CupertinoActivityIndicator(
+                      color: fg,
+                      radius: size == IosButtonSize.small ? 7 : (size == IosButtonSize.medium ? 9 : 10),
+                    ),
+                    if (loadingText != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        loadingText!,
+                        style: TextStyle(
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.w600,
+                          color: fg,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ],
                 )
               : Row(
                   mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
@@ -135,7 +167,7 @@ class IosButton extends StatelessWidget {
                         style: TextStyle(
                           fontSize: fontSize,
                           fontWeight: FontWeight.w600,
-                          color: isDisabled
+                          color: isActuallyDisabled
                               ? (isDark ? const Color(0xFF636366) : const Color(0xFFAEAEC2))
                               : fg,
                           letterSpacing: -0.2,

@@ -185,7 +185,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         const SizedBox(height: 18),
                         // AI Recap Card
                         AiRecapSection(viewModel: vm),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 96),
                       ],
                     ),
                   ),
