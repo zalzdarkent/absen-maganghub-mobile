@@ -49,7 +49,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
                     borderRadius: BorderRadius.circular(7),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     CupertinoIcons.clock_fill,
                     size: 15,
                     color: IosColors.statusGreen,
@@ -95,7 +95,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         if (vm.isExporting)
                           const CupertinoActivityIndicator(radius: 6)
                         else
-                          const Icon(CupertinoIcons.arrow_down_doc_fill, size: 12, color: IosColors.statusGreen),
+                          Icon(CupertinoIcons.arrow_down_doc_fill, size: 12, color: IosColors.statusGreen),
                         const SizedBox(width: 4),
                         Text(
                           vm.isExporting ? 'Ekspor…' : 'Excel',

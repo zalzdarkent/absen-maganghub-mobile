@@ -243,7 +243,7 @@ class _SplashScreenState extends State<SplashScreen>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      const Color(0xFF30D158).withValues(alpha: 0.05),
+                      IosColors.primary.withValues(alpha: 0.05),
                       Colors.transparent,
                     ],
                   ),
@@ -278,7 +278,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     shape: BoxShape.circle,
                                     gradient: RadialGradient(
                                       colors: [
-                                        const Color(0xFF30D158).withValues(
+                                        IosColors.primary.withValues(
                                           alpha: 0.28 * (1.3 - _glowRadius.value * 0.3),
                                         ),
                                         const Color(0xFF0A84FF).withValues(alpha: 0.05),
@@ -294,22 +294,18 @@ class _SplashScreenState extends State<SplashScreen>
                                   height: 110,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(26),
-                                    gradient: const LinearGradient(
+                                    gradient: LinearGradient(
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
-                                      colors: [
-                                        Color(0xFF1E2922),
-                                        Color(0xFF0F1511),
-                                        Color(0xFF080C0A),
-                                      ],
+                                      colors: IosColors.squircleGradient,
                                     ),
                                     border: Border.all(
-                                      color: const Color(0xFF30D158).withValues(alpha: 0.4),
+                                      color: IosColors.primary.withValues(alpha: 0.4),
                                       width: 1.5,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF30D158).withValues(
+                                        color: IosColors.primary.withValues(
                                           alpha: 0.35 + 0.15 * (1.0 - _glowRadius.value),
                                         ),
                                         blurRadius: 30,
@@ -327,7 +323,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     'assets/icon/app_icon.png',
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
-                                      return const Center(
+                                      return Center(
                                         child: Icon(
                                           CupertinoIcons.book_fill,
                                           color: IosColors.statusGreen,
@@ -443,16 +439,16 @@ class _SplashScreenState extends State<SplashScreen>
                                           child: Container(
                                             decoration: BoxDecoration(
                                               borderRadius: BorderRadius.circular(10),
-                                              gradient: const LinearGradient(
+                                              gradient: LinearGradient(
                                                 colors: [
-                                                  Color(0xFF00C853),
-                                                  Color(0xFF30D158),
-                                                  Color(0xFF69F0AE),
+                                                  IosColors.primaryDark,
+                                                  IosColors.primary,
+                                                  IosColors.primaryLight,
                                                 ],
                                               ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: const Color(0xFF30D158).withValues(alpha: 0.6),
+                                                  color: IosColors.primary.withValues(alpha: 0.6),
                                                   blurRadius: 8,
                                                 ),
                                               ],
@@ -485,14 +481,14 @@ class _SplashScreenState extends State<SplashScreen>
                               color: const Color(0xFF141916).withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: const Color(0xFF30D158).withValues(alpha: 0.2),
+                                color: IosColors.primary.withValues(alpha: 0.2),
                                 width: 1,
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   CupertinoIcons.sparkles,
                                   size: 13,
                                   color: IosColors.statusGreen,
@@ -539,8 +535,8 @@ class _AmbientGlowPainter extends CustomPainter {
     final paint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF30D158).withValues(alpha: 0.14),
-          const Color(0xFF00E676).withValues(alpha: 0.06),
+          IosColors.primary.withValues(alpha: 0.14),
+          IosColors.primaryLight.withValues(alpha: 0.06),
           Colors.transparent,
         ],
         stops: const [0.0, 0.45, 1.0],

@@ -84,7 +84,7 @@ class _CommitDiffModalState extends State<CommitDiffModal> {
                     ),
                     child: Text(
                       widget.commit.displaySha,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Courier',
                         fontSize: 12,
                         fontWeight: FontWeight.bold,

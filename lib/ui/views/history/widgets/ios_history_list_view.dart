@@ -69,7 +69,7 @@ class IosHistoryListView extends StatelessWidget {
                   margin: const EdgeInsets.only(top: 2),
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: IosColors.statusGreen,
                     shape: BoxShape.circle,
                   ),

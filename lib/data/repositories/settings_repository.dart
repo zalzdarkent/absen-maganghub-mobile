@@ -109,6 +109,14 @@ class SettingsRepository {
     return localStorageService.setSelectedRepoIds(ids);
   }
 
+  Future<String> getAccentTheme() {
+    return localStorageService.getAccentTheme();
+  }
+
+  Future<void> setAccentTheme(String theme) {
+    return localStorageService.setAccentTheme(theme);
+  }
+
   Future<void> triggerAutoDraft({List<String>? repoIds}) async {
     final standalone = await isStandalone();
     if (!standalone) {

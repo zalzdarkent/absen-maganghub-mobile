@@ -205,9 +205,9 @@ class _ServerConfigSectionState extends State<ServerConfigSection> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
+                    children: [
                       Icon(CupertinoIcons.checkmark_shield_fill, size: 14, color: IosColors.statusGreen),
-                      SizedBox(width: 6),
+                      const SizedBox(width: 6),
                       Text(
                         'Laptop Dimatikan? Tidak Masalah!',
                         style: TextStyle(

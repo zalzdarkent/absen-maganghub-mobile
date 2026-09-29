@@ -40,16 +40,18 @@ class IosButton extends StatelessWidget {
 
     switch (variant) {
       case IosButtonVariant.primary:
-        bg = IosColors.statusGreen;
-        fg = CupertinoColors.black;
+        bg = IosColors.primary;
+        fg = IosColors.onPrimary;
         break;
       case IosButtonVariant.secondary:
         bg = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA);
         fg = isDark ? CupertinoColors.white : CupertinoColors.black;
         break;
       case IosButtonVariant.tinted:
-        bg = isDark ? const Color(0x3330D158) : const Color(0x2230D158);
-        fg = isDark ? const Color(0xFF30D158) : const Color(0xFF248A3D);
+        bg = isDark
+            ? IosColors.primary.withValues(alpha: 0.20)
+            : IosColors.primary.withValues(alpha: 0.12);
+        fg = IosColors.primary;
         break;
       case IosButtonVariant.outline:
         bg = const Color(0x00000000);

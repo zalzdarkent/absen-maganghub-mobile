@@ -84,7 +84,7 @@ class _ManualNotesModalState extends State<ManualNotesModal> {
           if (commitCount > 0) ...[
             Row(
               children: [
-                const Icon(CupertinoIcons.chevron_left_slash_chevron_right, size: 14, color: IosColors.statusGreen),
+                Icon(CupertinoIcons.chevron_left_slash_chevron_right, size: 14, color: IosColors.statusGreen),
                 const SizedBox(width: 6),
                 Text(
                   'Commit Hari Ini ($commitCount commit)',
@@ -117,7 +117,7 @@ class _ManualNotesModalState extends State<ManualNotesModal> {
                         children: [
                           Text(
                             c.displaySha,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Courier',
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
