@@ -54,6 +54,7 @@ class GithubService {
     final headers = <String, String>{
       'Accept': 'application/vnd.github.v3+json',
       'User-Agent': 'MagangHub-iOS-Flutter',
+      'Cache-Control': 'no-cache',
     };
     if (token != null && token.trim().isNotEmpty) {
       headers['Authorization'] = 'token ${token.trim()}';
@@ -73,14 +74,15 @@ class GithubService {
 
     final now = DateTime.now();
     final since = DateTime(now.year, now.month, now.day).toUtc().toIso8601String();
-    final until = now.toUtc().toIso8601String();
 
+    // Do not pass until: commits cannot be in the future, and device clock drift
+    // could otherwise filter out recent commits.
     final uri = Uri.parse(
-      'https://api.github.com/repos/${info.owner}/${info.repo}/commits?since=$since&until=$until&per_page=50',
+      'https://api.github.com/repos/${info.owner}/${info.repo}/commits?since=$since&per_page=50',
     );
 
     try {
-      final res = await _client.get(uri, headers: _buildHeaders(token)).timeout(const Duration(seconds: 8));
+      final res = await _client.get(uri, headers: _buildHeaders(token)).timeout(const Duration(seconds: 12));
       if (res.statusCode != 200) {
         return [];
       }
