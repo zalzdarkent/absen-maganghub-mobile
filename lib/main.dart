@@ -10,6 +10,7 @@ import 'data/services/api_service.dart';
 import 'data/services/github_service.dart';
 import 'data/services/llm_service.dart';
 import 'data/services/local_storage_service.dart';
+import 'data/services/notification_service.dart';
 import 'data/services/standalone_storage_service.dart';
 import 'ui/view_models/app_state.dart';
 import 'ui/view_models/auth_view_model.dart';
@@ -66,6 +67,21 @@ void main() async {
 
   final savedAccent = await localStorageService.getAccentTheme();
   IosColors.setAccentTheme(AccentColorThemeExtension.fromString(savedAccent));
+
+  // Initialize Notification Service for 15:00 daily push reminder
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  await notificationService.requestPermissions();
+
+  final isReminderEnabled = await localStorageService.isDailyReminderEnabled();
+  if (isReminderEnabled) {
+    final hour = await localStorageService.getReminderHour();
+    final minute = await localStorageService.getReminderMinute();
+    await notificationService.scheduleDailyReminder(
+      hour: hour,
+      minute: minute,
+    );
+  }
 
   runApp(MagangHubApp(
     appState: appState,

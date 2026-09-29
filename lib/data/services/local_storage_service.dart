@@ -97,6 +97,36 @@ class LocalStorageService {
     await prefs.setString(_keyAccentTheme, theme);
   }
 
+  static const String _keyDailyReminder = 'maganghub:daily_reminder_enabled';
+  static const String _keyReminderHour = 'maganghub:reminder_hour';
+  static const String _keyReminderMinute = 'maganghub:reminder_minute';
+
+  Future<bool> isDailyReminderEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyDailyReminder) ?? true;
+  }
+
+  Future<void> setDailyReminderEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyDailyReminder, enabled);
+  }
+
+  Future<int> getReminderHour() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyReminderHour) ?? 15;
+  }
+
+  Future<int> getReminderMinute() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyReminderMinute) ?? 0;
+  }
+
+  Future<void> setReminderTime(int hour, int minute) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyReminderHour, hour);
+    await prefs.setInt(_keyReminderMinute, minute);
+  }
+
   Future<void> clearLocalDraft({int? userId}) async {
     final prefs = await SharedPreferences.getInstance();
     if (userId != null) {

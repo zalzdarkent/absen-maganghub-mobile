@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/theme/app_accent_theme.dart';
 import '../../core/theme/ios_colors.dart';
 import '../../data/repositories/settings_repository.dart';
+import '../../data/services/notification_service.dart';
 import '../../domain/models/repository_model.dart';
 import '../../domain/models/settings_model.dart';
 
@@ -25,6 +26,12 @@ class SettingsViewModel extends ChangeNotifier {
 
   AccentColorTheme _accentTheme = AccentColorTheme.emerald;
 
+  bool _isDailyReminderEnabled = true;
+  int _reminderHour = 15;
+  int _reminderMinute = 0;
+  bool _isSendingTestNotif = false;
+  String? _testNotifStatus;
+
   SettingsModel get settings => _settings;
   String get serverUrl => _serverUrl;
   bool get isStandalone => _isStandalone;
@@ -40,12 +47,21 @@ class SettingsViewModel extends ChangeNotifier {
   AccentColorTheme get accentTheme => _accentTheme;
   bool get isSusanooTheme => _accentTheme == AccentColorTheme.susanoo;
 
+  bool get isDailyReminderEnabled => _isDailyReminderEnabled;
+  int get reminderHour => _reminderHour;
+  int get reminderMinute => _reminderMinute;
+  bool get isSendingTestNotif => _isSendingTestNotif;
+  String? get testNotifStatus => _testNotifStatus;
+
   Future<void> init() async {
     _isStandalone = await settingsRepository.isStandalone();
     _serverUrl = await settingsRepository.getSavedServerUrl() ?? '';
     final savedThemeStr = await settingsRepository.getAccentTheme();
     _accentTheme = AccentColorThemeExtension.fromString(savedThemeStr);
     IosColors.setAccentTheme(_accentTheme);
+    _isDailyReminderEnabled = await settingsRepository.isDailyReminderEnabled();
+    _reminderHour = await settingsRepository.getReminderHour();
+    _reminderMinute = await settingsRepository.getReminderMinute();
     await loadSettings();
   }
 
@@ -221,5 +237,38 @@ class SettingsViewModel extends ChangeNotifier {
 
   Future<void> triggerAutoDraft() async {
     await settingsRepository.triggerAutoDraft();
+  }
+
+  Future<void> toggleDailyReminder(bool value) async {
+    _isDailyReminderEnabled = value;
+    await settingsRepository.setDailyReminderEnabled(value);
+    final notifService = NotificationService();
+    if (value) {
+      await notifService.scheduleDailyReminder(
+        hour: _reminderHour,
+        minute: _reminderMinute,
+      );
+    } else {
+      await notifService.cancelDailyReminder();
+    }
+    notifyListeners();
+  }
+
+  Future<void> sendTestNotification() async {
+    _isSendingTestNotif = true;
+    _testNotifStatus = null;
+    notifyListeners();
+
+    try {
+      final notifService = NotificationService();
+      await notifService.requestPermissions();
+      await notifService.showTestNotification();
+      _testNotifStatus = 'Notifikasi tes berhasil dikirim! Silakan periksa bilah notifikasi HP Anda.';
+    } catch (e) {
+      _testNotifStatus = 'Gagal mengirim notifikasi tes: $e';
+    } finally {
+      _isSendingTestNotif = false;
+      notifyListeners();
+    }
   }
 }

@@ -6,6 +6,7 @@ import '../../view_models/settings_view_model.dart';
 import 'widgets/about_section.dart';
 import 'widgets/accent_theme_section.dart';
 import 'widgets/ai_provider_section.dart';
+import 'widgets/notification_reminder_section.dart';
 import 'widgets/repo_manager_section.dart';
 import 'widgets/user_account_section.dart';
 
@@ -121,6 +122,8 @@ class SettingsScreen extends StatelessWidget {
                         AiProviderSection(viewModel: viewModel),
                         const SizedBox(height: 16),
                         RepoManagerSection(viewModel: viewModel),
+                        const SizedBox(height: 16),
+                        NotificationReminderSection(viewModel: viewModel),
                         const SizedBox(height: 16),
                         AboutSection(viewModel: viewModel),
                         const SizedBox(height: 96),

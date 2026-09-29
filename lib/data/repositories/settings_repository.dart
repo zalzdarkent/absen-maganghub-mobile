@@ -123,4 +123,10 @@ class SettingsRepository {
       return apiService.triggerAutoDraft(repoIds: repoIds);
     }
   }
+
+  Future<bool> isDailyReminderEnabled() => localStorageService.isDailyReminderEnabled();
+  Future<void> setDailyReminderEnabled(bool enabled) => localStorageService.setDailyReminderEnabled(enabled);
+  Future<int> getReminderHour() => localStorageService.getReminderHour();
+  Future<int> getReminderMinute() => localStorageService.getReminderMinute();
+  Future<void> setReminderTime(int hour, int minute) => localStorageService.setReminderTime(hour, minute);
 }
