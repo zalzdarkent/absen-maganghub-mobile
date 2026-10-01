@@ -62,10 +62,15 @@ class _ManualNotesModalState extends State<ManualNotesModal> {
     final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
     final commitCount = widget.viewModel.commitCount;
     final commits = widget.viewModel.commits;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.translucent,
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + bottomInset),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
@@ -196,6 +201,7 @@ class _ManualNotesModalState extends State<ManualNotesModal> {
           ),
         ],
       ),
+    ),
     );
   }
 }

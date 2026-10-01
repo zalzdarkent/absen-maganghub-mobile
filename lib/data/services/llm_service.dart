@@ -263,12 +263,14 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
   }
 
   Future<DraftFields> generateWithGemini(String prompt, {required SettingsModel settings}) async {
-    final apiKey = settings.geminiApiKey.trim();
+    final apiKey = settings.cloudApiKey.trim();
     if (apiKey.isEmpty) {
       throw Exception('API Key Google Gemini belum diisi. Masukkan di tab Pengaturan atau gunakan Local LLM.');
     }
 
-    final model = settings.geminiModel.trim().isNotEmpty ? settings.geminiModel : 'gemini-3.6-flash';
+    final model = (settings.cloudModel.trim().isNotEmpty && !settings.cloudModel.contains('pickle'))
+        ? settings.cloudModel.trim()
+        : 'gemini-1.5-flash';
     final uri = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey');
 
     final body = jsonEncode({
@@ -279,7 +281,6 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
       ],
       'generationConfig': {
         'temperature': 0.7,
-        'maxOutputTokens': 2048,
         'responseMimeType': 'application/json',
       }
     });
@@ -288,10 +289,10 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
       uri,
       headers: {'Content-Type': 'application/json'},
       body: body,
-    ).timeout(const Duration(seconds: 40));
+    ).timeout(const Duration(seconds: 45));
 
     if (res.statusCode != 200) {
-      throw Exception('Gemini API error (${res.statusCode}): ${res.body}');
+      throw Exception('Google Gemini API error (${res.statusCode}): ${res.body}');
     }
 
     final data = jsonDecode(res.body);
@@ -300,16 +301,98 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
     return _ensureCompliance(jsonMap);
   }
 
+  Future<DraftFields> generateWithOpenAiCompatible(String prompt, {required SettingsModel settings}) async {
+    final apiKey = settings.cloudApiKey.trim();
+    if (apiKey.isEmpty) {
+      final name = settings.cloudProvider == 'groq' ? 'Groq' : 'Cloud AI';
+      throw Exception('API Key $name belum diisi. Masukkan di tab Pengaturan atau gunakan Local LLM.');
+    }
+
+    final model = settings.cloudModel.trim().isNotEmpty
+        ? settings.cloudModel.trim()
+        : (settings.cloudProvider == 'groq' ? 'llama-3.1-8b-instant' : 'big-pickle');
+
+    var endpoint = settings.cloudUrl.trim();
+    if (endpoint.isEmpty) {
+      endpoint = settings.cloudProvider == 'openrouter'
+          ? 'https://openrouter.ai/api/v1/chat/completions'
+          : (settings.cloudProvider == 'opencode'
+              ? 'https://opencode.ai/zen/v1/chat/completions'
+              : 'https://api.groq.com/openai/v1/chat/completions');
+    }
+
+    final uri = Uri.parse(endpoint);
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $apiKey',
+    };
+    if (settings.cloudProvider == 'openrouter') {
+      headers['HTTP-Referer'] = 'https://maganghub.kemnaker.go.id';
+      headers['X-Title'] = 'Absen MagangHub';
+    }
+
+    final body = jsonEncode({
+      'model': model,
+      'messages': [
+        {
+          'role': 'system',
+          'content': 'Kamu adalah asisten penulisan logbook magang IT harian yang menghasilkan respon dalam format JSON valid saja.',
+        },
+        {
+          'role': 'user',
+          'content': prompt,
+        },
+      ],
+      'temperature': 0.7,
+      'max_tokens': 2048,
+    });
+
+    final res = await _client.post(
+      uri,
+      headers: headers,
+      body: body,
+    ).timeout(const Duration(seconds: 45));
+
+    if (res.statusCode != 200) {
+      if (res.statusCode == 404 && res.body.contains('model_not_found')) {
+        throw Exception('Model "$model" tidak ditemukan atau tidak tersedia di akun API Key ini. Silakan ganti ke "llama-3.1-8b-instant" (Kilat & Gratis) di Pengaturan.');
+      }
+      if (res.statusCode == 403 && res.body.contains('FreeTierError')) {
+        throw Exception('OpenCode Zen Free Tier memblokir aplikasi mobile eksternal. Gunakan provider Groq (gratis di console.groq.com) atau Google Gemini!');
+      }
+      if (res.statusCode == 400 && res.body.contains('max_tokens') && (model.contains('guard') || model.contains('prompt-guard'))) {
+        throw Exception('Model "$model" adalah filter keamanan (Prompt Guard) dengan batas 512 token dan tidak bisa generate paragraf logbook. Silakan ganti model ke "llama-3.1-8b-instant" di tab Pengaturan.');
+      }
+      throw Exception('Cloud AI API error (${res.statusCode}): ${res.body}');
+    }
+
+    final data = jsonDecode(res.body);
+    final text = data['choices']?[0]?['message']?['content'] as String? ?? '';
+    final jsonMap = extractJsonObject(text);
+    return _ensureCompliance(jsonMap);
+  }
+
+  Future<DraftFields> generateWithCloud(String prompt, {required SettingsModel settings}) {
+    if (settings.cloudProvider == 'gemini' || settings.cloudModel.toLowerCase().startsWith('gemini-')) {
+      return generateWithGemini(prompt, settings: settings);
+    }
+    return generateWithOpenAiCompatible(prompt, settings: settings);
+  }
+
+  // Backward compatibility
+  Future<DraftFields> generateWithOpenCode(String prompt, {required SettingsModel settings}) =>
+      generateWithCloud(prompt, settings: settings);
+
   Future<DraftFields> generateDraft({
     required String gitLogs,
     required String diffSection,
     required SettingsModel settings,
   }) async {
     final prompt = buildPrompt(gitLogs, diffSection);
-    if (settings.llmProvider == 'gemini') {
-      return generateWithGemini(prompt, settings: settings);
-    } else {
+    if (settings.isLocalLlm) {
       return generateWithLocalLlm(prompt, settings: settings);
+    } else {
+      return generateWithCloud(prompt, settings: settings);
     }
   }
 
@@ -318,10 +401,10 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
     required SettingsModel settings,
   }) async {
     final prompt = buildManualPrompt(description);
-    if (settings.llmProvider == 'gemini') {
-      return generateWithGemini(prompt, settings: settings);
-    } else {
+    if (settings.isLocalLlm) {
       return generateWithLocalLlm(prompt, settings: settings);
+    } else {
+      return generateWithCloud(prompt, settings: settings);
     }
   }
 
@@ -332,10 +415,10 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
     required SettingsModel settings,
   }) async {
     final prompt = buildCombinedPrompt(gitLogs, manualNotes, diffSection);
-    if (settings.llmProvider == 'gemini') {
-      return generateWithGemini(prompt, settings: settings);
-    } else {
+    if (settings.isLocalLlm) {
       return generateWithLocalLlm(prompt, settings: settings);
+    } else {
+      return generateWithCloud(prompt, settings: settings);
     }
   }
 
@@ -347,25 +430,79 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
     final prompt = buildRecapPrompt(entries, period);
     Map<String, dynamic> raw;
 
-    if (settings.llmProvider == 'gemini') {
-      final apiKey = settings.geminiApiKey.trim();
+    if (!settings.isLocalLlm) {
+      final apiKey = settings.cloudApiKey.trim();
       if (apiKey.isEmpty) {
-        throw Exception('API Key Google Gemini belum diisi di Pengaturan.');
+        throw Exception('API Key Cloud AI belum diisi di Pengaturan.');
       }
-      final model = settings.geminiModel.trim().isNotEmpty ? settings.geminiModel : 'gemini-3.6-flash';
-      final uri = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey');
-      final res = await _client.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'contents': [{'parts': [{'text': prompt}]}],
-          'generationConfig': {'responseMimeType': 'application/json'},
-        }),
-      ).timeout(const Duration(seconds: 45));
 
-      final data = jsonDecode(res.body);
-      final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'] as String? ?? '';
-      raw = extractJsonObject(text);
+      if (settings.cloudProvider == 'gemini' || settings.cloudModel.toLowerCase().startsWith('gemini-')) {
+        final model = (settings.cloudModel.trim().isNotEmpty && !settings.cloudModel.contains('pickle'))
+            ? settings.cloudModel.trim()
+            : 'gemini-1.5-flash';
+        final uri = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey');
+        final res = await _client.post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'contents': [{'parts': [{'text': prompt}]}],
+            'generationConfig': {'responseMimeType': 'application/json'},
+          }),
+        ).timeout(const Duration(seconds: 45));
+
+        if (res.statusCode != 200) {
+          throw Exception('Google Gemini API error (${res.statusCode}): ${res.body}');
+        }
+        final data = jsonDecode(res.body);
+        final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'] as String? ?? '';
+        raw = extractJsonObject(text);
+      } else {
+        final model = settings.cloudModel.trim().isNotEmpty
+            ? settings.cloudModel.trim()
+            : (settings.cloudProvider == 'groq' ? 'llama-3.1-8b-instant' : 'big-pickle');
+
+        var endpoint = settings.cloudUrl.trim();
+        if (endpoint.isEmpty) {
+          endpoint = settings.cloudProvider == 'openrouter'
+              ? 'https://openrouter.ai/api/v1/chat/completions'
+              : (settings.cloudProvider == 'opencode'
+                  ? 'https://opencode.ai/zen/v1/chat/completions'
+                  : 'https://api.groq.com/openai/v1/chat/completions');
+        }
+
+        final uri = Uri.parse(endpoint);
+        final res = await _client.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $apiKey',
+          },
+          body: jsonEncode({
+            'model': model,
+            'messages': [
+              {
+                'role': 'system',
+                'content': 'Kamu adalah asisten perangkum logbook magang IT yang menghasilkan respon dalam format JSON valid saja.',
+              },
+              {
+                'role': 'user',
+                'content': prompt,
+              },
+            ],
+          }),
+        ).timeout(const Duration(seconds: 45));
+
+        if (res.statusCode != 200) {
+          if (res.statusCode == 404 && res.body.contains('model_not_found')) {
+            throw Exception('Model "$model" tidak ditemukan atau tidak tersedia di akun API Key ini. Silakan ganti ke "llama-3.1-8b-instant" (Kilat & Gratis) di Pengaturan.');
+          }
+          throw Exception('Cloud AI API error (${res.statusCode}): ${res.body}');
+        }
+
+        final data = jsonDecode(res.body);
+        final text = data['choices']?[0]?['message']?['content'] as String? ?? '';
+        raw = extractJsonObject(text);
+      }
     } else {
       var rawUrl = settings.localLlmUrl.trim();
       if (rawUrl.isEmpty) rawUrl = 'http://192.168.13.155:3000';
@@ -391,26 +528,102 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
   Future<Map<String, dynamic>> testConnection(SettingsModel settings) async {
     final stopwatch = Stopwatch()..start();
     try {
-      if (settings.llmProvider == 'gemini') {
-        final apiKey = settings.geminiApiKey.trim();
+      if (!settings.isLocalLlm) {
+        final apiKey = settings.cloudApiKey.trim();
         if (apiKey.isEmpty) {
-          return {'ok': false, 'message': 'API Key Gemini belum diisi.'};
+          final name = settings.cloudProvider == 'groq' ? 'Groq' : 'Cloud AI';
+          return {'ok': false, 'message': 'API Key $name belum diisi.'};
         }
-        final model = settings.geminiModel.isNotEmpty ? settings.geminiModel : 'gemini-3.6-flash';
-        final uri = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey');
-        final res = await _client.post(
-          uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'contents': [{'parts': [{'text': 'halo'}]}],
-          }),
-        ).timeout(const Duration(seconds: 10));
 
-        stopwatch.stop();
-        if (res.statusCode == 200) {
-          return {'ok': true, 'latencyMs': stopwatch.elapsedMilliseconds, 'message': 'Koneksi Gemini Cloud berhasil!'};
+        if (settings.cloudProvider == 'gemini' || settings.cloudModel.toLowerCase().startsWith('gemini-')) {
+          final model = (settings.cloudModel.isNotEmpty && !settings.cloudModel.contains('pickle'))
+              ? settings.cloudModel
+              : 'gemini-1.5-flash';
+          final uri = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey');
+          final res = await _client.post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'contents': [{'parts': [{'text': 'ping'}]}],
+            }),
+          ).timeout(const Duration(seconds: 15));
+
+          stopwatch.stop();
+          if (res.statusCode == 200) {
+            return {
+              'ok': true,
+              'latencyMs': stopwatch.elapsedMilliseconds,
+              'message': 'Koneksi Google Gemini ($model) berhasil! ✨',
+            };
+          } else {
+            return {'ok': false, 'message': 'HTTP ${res.statusCode}: ${res.body}'};
+          }
         } else {
-          return {'ok': false, 'message': 'HTTP ${res.statusCode}: ${res.body}'};
+          final model = settings.cloudModel.isNotEmpty
+              ? settings.cloudModel
+              : (settings.cloudProvider == 'groq' ? 'llama-3.1-8b-instant' : 'big-pickle');
+
+          var endpoint = settings.cloudUrl.trim();
+          if (endpoint.isEmpty) {
+            endpoint = settings.cloudProvider == 'openrouter'
+                ? 'https://openrouter.ai/api/v1/chat/completions'
+                : (settings.cloudProvider == 'opencode'
+                    ? 'https://opencode.ai/zen/v1/chat/completions'
+                    : 'https://api.groq.com/openai/v1/chat/completions');
+          }
+
+          final uri = Uri.parse(endpoint);
+          final headers = <String, String>{
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $apiKey',
+          };
+          if (settings.cloudProvider == 'openrouter') {
+            headers['HTTP-Referer'] = 'https://maganghub.kemnaker.go.id';
+            headers['X-Title'] = 'Absen MagangHub';
+          }
+
+          final res = await _client.post(
+            uri,
+            headers: headers,
+            body: jsonEncode({
+              'model': model,
+              'messages': [
+                {'role': 'user', 'content': 'ping'}
+              ],
+              'max_tokens': 5,
+            }),
+          ).timeout(const Duration(seconds: 15));
+
+          stopwatch.stop();
+          if (res.statusCode == 200) {
+            final providerName = settings.cloudProvider == 'groq'
+                ? 'Groq'
+                : (settings.cloudProvider == 'openrouter'
+                    ? 'OpenRouter'
+                    : (settings.cloudProvider == 'opencode' ? 'OpenCode Zen' : 'Cloud AI'));
+            final guardNote = (model.contains('guard') || model.contains('prompt-guard'))
+                ? ' (Catatan: ini model Prompt Guard, ganti ke "llama-3.1-8b-instant" untuk nulis logbook).'
+                : '';
+            return {
+              'ok': true,
+              'latencyMs': stopwatch.elapsedMilliseconds,
+              'message': 'Koneksi $providerName ($model) berhasil!$guardNote ⚡',
+            };
+          } else {
+            if (res.statusCode == 404 && res.body.contains('model_not_found')) {
+              return {
+                'ok': false,
+                'message': 'Model "$model" tidak dapat diakses dengan API Key ini. Silakan pilih "llama-3.1-8b-instant" (Kilat & Bebas Limit) atau klik "Cek Model Akun".',
+              };
+            }
+            if (res.statusCode == 403 && res.body.contains('FreeTierError')) {
+              return {
+                'ok': false,
+                'message': 'OpenCode Zen Free Tier memblokir client mobile eksternal. Gunakan Groq (100% gratis di console.groq.com)!',
+              };
+            }
+            return {'ok': false, 'message': 'HTTP ${res.statusCode}: ${res.body}'};
+          }
         }
       } else {
         var rawUrl = settings.localLlmUrl.trim();
@@ -449,4 +662,80 @@ Buat rekap ${isWeekly ? 'mingguan' : 'bulanan'} dari data di atas. Balas HANYA J
       return {'ok': false, 'message': e.toString()};
     }
   }
+
+  /// Fetches available models from the provider for the specified API key.
+  Future<List<String>> fetchAvailableModels({
+    required String provider,
+    required String apiKey,
+    String? customUrl,
+  }) async {
+    final key = apiKey.trim();
+    if (key.isEmpty) {
+      throw Exception('API Key belum diisi. Masukkan API Key terlebih dahulu.');
+    }
+
+    try {
+      if (provider == 'groq') {
+        final res = await _client.get(
+          Uri.parse('https://api.groq.com/openai/v1/models'),
+          headers: {'Authorization': 'Bearer $key'},
+        ).timeout(const Duration(seconds: 10));
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final rawList = (data['data'] as List<dynamic>?)
+                  ?.map((e) => e['id'] as String)
+                  .where((id) => !id.contains('whisper') && !id.contains('guard'))
+                  .toList() ??
+              [];
+          // Prioritize llama-3.1-8b-instant at the top
+          rawList.sort((a, b) {
+            if (a == 'llama-3.1-8b-instant') return -1;
+            if (b == 'llama-3.1-8b-instant') return 1;
+            return a.compareTo(b);
+          });
+          return rawList;
+        } else {
+          throw Exception('HTTP ${res.statusCode}: ${res.body}');
+        }
+      } else if (provider == 'gemini') {
+        final res = await _client.get(
+          Uri.parse('https://generativelanguage.googleapis.com/v1beta/models?key=$key'),
+        ).timeout(const Duration(seconds: 10));
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final rawList = (data['models'] as List<dynamic>?)
+                  ?.map((e) => (e['name'] as String).replaceFirst('models/', ''))
+                  .where((id) => id.contains('gemini'))
+                  .toList() ??
+              [];
+          rawList.sort();
+          return rawList;
+        } else {
+          throw Exception('HTTP ${res.statusCode}: ${res.body}');
+        }
+      } else if (provider == 'openrouter') {
+        final res = await _client.get(
+          Uri.parse('https://openrouter.ai/api/v1/models'),
+          headers: {'Authorization': 'Bearer $key'},
+        ).timeout(const Duration(seconds: 10));
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final rawList = (data['data'] as List<dynamic>?)
+                  ?.map((e) => e['id'] as String)
+                  .toList() ??
+              [];
+          return rawList;
+        } else {
+          throw Exception('HTTP ${res.statusCode}: ${res.body}');
+        }
+      }
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
+

@@ -36,5 +36,18 @@ class ApiConstants {
 
   static const String defaultLocalLlmUrl = 'http://192.168.13.155:3000';
   static const String defaultLocalLlmModel = 'gpt-oss-20b';
-  static const String defaultGeminiModel = 'gemini-3.6-flash';
+
+  // Cloud AI Presets
+  static const String defaultGroqModel = 'llama-3.1-8b-instant';
+  static const String defaultGroqUrl = 'https://api.groq.com/openai/v1/chat/completions';
+  static const String groqModelsEndpoint = 'https://api.groq.com/openai/v1/models';
+
+  static const String defaultGeminiModel = 'gemini-1.5-flash';
+  static const String defaultGeminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+  static const String defaultOpenRouterModel = 'meta-llama/llama-3.3-70b-instruct:free';
+  static const String defaultOpenRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
+
+  static const String defaultOpenCodeModel = 'big-pickle';
+  static const String defaultOpenCodeUrl = 'https://opencode.ai/zen/v1/chat/completions';
 }

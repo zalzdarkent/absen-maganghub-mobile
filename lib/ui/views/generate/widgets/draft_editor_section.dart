@@ -187,16 +187,16 @@ class _DraftEditorSectionState extends State<DraftEditorSection> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => vm.switchProvider('gemini'),
+                      onTap: () => vm.switchProvider('cloud'),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: activeProvider == 'gemini'
+                          color: (activeProvider != 'local')
                               ? (isDark ? const Color(0xFF3A3A3C) : CupertinoColors.white)
                               : const Color(0x00000000),
                           borderRadius: BorderRadius.circular(100),
-                          boxShadow: activeProvider == 'gemini' && !isDark
+                          boxShadow: (activeProvider != 'local') && !isDark
                               ? [const BoxShadow(color: Color(0x1A000000), blurRadius: 4)]
                               : null,
                         ),
@@ -205,15 +205,19 @@ class _DraftEditorSectionState extends State<DraftEditorSection> {
                             Icon(
                               CupertinoIcons.sparkles,
                               size: 12,
-                              color: activeProvider == 'gemini' ? IosColors.statusAmber : IosColors.secondaryLabel(context),
+                              color: (activeProvider != 'local')
+                                  ? IosColors.statusAmber
+                                  : IosColors.secondaryLabel(context),
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Gemini',
+                              'Cloud AI',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: activeProvider == 'gemini' ? FontWeight.bold : FontWeight.w500,
-                                color: activeProvider == 'gemini'
+                                fontWeight: (activeProvider != 'local')
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: (activeProvider != 'local')
                                     ? (isDark ? CupertinoColors.white : CupertinoColors.black)
                                     : IosColors.secondaryLabel(context),
                               ),
@@ -230,7 +234,7 @@ class _DraftEditorSectionState extends State<DraftEditorSection> {
 
           const SizedBox(height: 6),
           Text(
-            'Tiga bagian: aktivitas, pembelajaran, kendala. Model: ${activeProvider == 'local' ? 'Local LLM' : 'Google Gemini'}.',
+            'Tiga bagian: aktivitas, pembelajaran, kendala. Model: ${activeProvider == 'local' ? 'Local LLM' : 'Big Pickle (OpenCode)'}.',
             style: TextStyle(
               fontSize: 12,
               color: IosColors.secondaryLabel(context),

@@ -125,7 +125,11 @@ class IosCalendarGrid extends StatelessWidget {
           IosModal.showBottomSheet(
             context: context,
             title: 'Detail Logbook',
-            child: EditEntrySheet(entry: entry, viewModel: viewModel),
+            builder: (modalCtx, scrollController) => EditEntrySheet(
+              entry: entry,
+              viewModel: viewModel,
+              scrollController: scrollController,
+            ),
           );
         } else if (isWeekend) {
           IosToast.show(context, '${DateFormat('d MMMM yyyy', 'id_ID').format(date)} (Akhir pekan)', type: ToastType.info);

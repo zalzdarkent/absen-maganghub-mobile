@@ -4,7 +4,8 @@ import '../theme/ios_colors.dart';
 class IosModal {
   static Future<T?> showBottomSheet<T>({
     required BuildContext context,
-    required Widget child,
+    Widget? child,
+    Widget Function(BuildContext context, ScrollController scrollController)? builder,
     String? title,
     Widget? trailing,
     bool isDismissible = true,
@@ -12,6 +13,7 @@ class IosModal {
     double minChildSize = 0.4,
     double maxChildSize = 0.95,
   }) {
+    assert(child != null || builder != null, 'Either child or builder must be provided');
     final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
     final bg = isDark ? IosColors.darkSecondaryBackground : IosColors.lightSecondaryBackground;
 
@@ -91,7 +93,7 @@ class IosModal {
                       ),
                     ],
                     Expanded(
-                      child: child,
+                      child: builder != null ? builder(context, scrollController) : child!,
                     ),
                   ],
                 ),

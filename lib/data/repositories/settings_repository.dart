@@ -51,12 +51,14 @@ class SettingsRepository {
       }
 
       final updated = current.copyWith(
-        llmProvider: payload['llmProvider'] as String?,
+        llmProvider: payload['llmProvider'] as String? ?? payload['provider'] as String?,
         localLlmUrl: payload['localLlmUrl'] as String?,
         localLlmModel: payload['localLlmModel'] as String?,
         localLlmApiKey: payload['localLlmApiKey'] as String?,
-        geminiApiKey: payload['apiKey'] as String? ?? payload['geminiApiKey'] as String?,
-        geminiModel: payload['geminiModel'] as String?,
+        cloudProvider: payload['cloudProvider'] as String?,
+        cloudModel: payload['cloudModel'] as String? ?? payload['openCodeModel'] as String? ?? payload['geminiModel'] as String?,
+        cloudUrl: payload['cloudUrl'] as String?,
+        cloudApiKey: payload['cloudApiKey'] as String? ?? payload['openCodeApiKey'] as String? ?? payload['apiKey'] as String? ?? payload['geminiApiKey'] as String?,
         repositories: repos,
         activeRepoId: payload.containsKey('activeRepoId')
             ? payload['activeRepoId'] as String?
@@ -79,17 +81,31 @@ class SettingsRepository {
       final settings = await fetchSettings();
       // Apply override from payload if any
       final testConfig = settings.copyWith(
-        llmProvider: payload['llmProvider'] as String?,
+        llmProvider: payload['llmProvider'] as String? ?? payload['provider'] as String?,
         localLlmUrl: payload['localLlmUrl'] as String?,
         localLlmModel: payload['localLlmModel'] as String?,
         localLlmApiKey: payload['localLlmApiKey'] as String?,
-        geminiApiKey: payload['apiKey'] as String? ?? payload['geminiApiKey'] as String?,
-        geminiModel: payload['geminiModel'] as String?,
+        cloudProvider: payload['cloudProvider'] as String?,
+        cloudModel: payload['cloudModel'] as String? ?? payload['openCodeModel'] as String? ?? payload['geminiModel'] as String?,
+        cloudUrl: payload['cloudUrl'] as String?,
+        cloudApiKey: payload['cloudApiKey'] as String? ?? payload['openCodeApiKey'] as String? ?? payload['apiKey'] as String? ?? payload['geminiApiKey'] as String?,
       );
       return llmService.testConnection(testConfig);
     }
 
     return apiService.testLlm(payload);
+  }
+
+  Future<List<String>> fetchAvailableModels({
+    required String provider,
+    required String apiKey,
+    String? customUrl,
+  }) {
+    return llmService.fetchAvailableModels(
+      provider: provider,
+      apiKey: apiKey,
+      customUrl: customUrl,
+    );
   }
 
   Future<String?> getSavedServerUrl() {

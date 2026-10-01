@@ -38,6 +38,10 @@ class SettingsViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSavingLlm => _isSavingLlm;
   bool get isTestingLlm => _isTestingLlm;
+  bool _isFetchingModels = false;
+  bool get isFetchingModels => _isFetchingModels;
+  List<String> _availableModels = [];
+  List<String> get availableModels => _availableModels;
   bool get isAddingRepo => _isAddingRepo;
   bool get isReimporting => _isReimporting;
   int get sqliteEntryCount => _sqliteEntryCount;
@@ -128,7 +132,13 @@ class SettingsViewModel extends ChangeNotifier {
     required String localLlmUrl,
     required String localLlmModel,
     required String localLlmApiKey,
-    required String geminiModel,
+    String? cloudProvider,
+    String? cloudModel,
+    String? cloudUrl,
+    String? cloudApiKey,
+    String? openCodeModel,
+    String? openCodeApiKey,
+    String? geminiModel,
     String? geminiApiKey,
   }) async {
     _isSavingLlm = true;
@@ -136,15 +146,25 @@ class SettingsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final model = cloudModel ?? openCodeModel ?? geminiModel ?? 'llama-3.1-8b-instant';
+      final apiKey = cloudApiKey ?? openCodeApiKey ?? geminiApiKey;
+
       final payload = <String, dynamic>{
         'llmProvider': provider,
         'localLlmUrl': localLlmUrl,
         'localLlmModel': localLlmModel,
         'localLlmApiKey': localLlmApiKey,
-        'geminiModel': geminiModel,
+        'cloudProvider': cloudProvider ?? 'groq',
+        'cloudModel': model,
+        'cloudUrl': cloudUrl ?? '',
+        'openCodeModel': model,
+        'geminiModel': model,
       };
-      if (geminiApiKey != null && geminiApiKey.trim().isNotEmpty) {
-        payload['apiKey'] = geminiApiKey.trim();
+      if (apiKey != null && apiKey.trim().isNotEmpty) {
+        payload['apiKey'] = apiKey.trim();
+        payload['cloudApiKey'] = apiKey.trim();
+        payload['openCodeApiKey'] = apiKey.trim();
+        payload['geminiApiKey'] = apiKey.trim();
       }
       await settingsRepository.saveSettings(payload);
       await loadSettings();
@@ -159,7 +179,13 @@ class SettingsViewModel extends ChangeNotifier {
     required String localLlmUrl,
     required String localLlmModel,
     required String localLlmApiKey,
-    required String geminiModel,
+    String? cloudProvider,
+    String? cloudModel,
+    String? cloudUrl,
+    String? cloudApiKey,
+    String? openCodeModel,
+    String? openCodeApiKey,
+    String? geminiModel,
     String? geminiApiKey,
   }) async {
     _isTestingLlm = true;
@@ -167,17 +193,26 @@ class SettingsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final model = cloudModel ?? openCodeModel ?? geminiModel ?? 'llama-3.1-8b-instant';
+      final apiKey = cloudApiKey ?? openCodeApiKey ?? geminiApiKey;
+
       final payload = <String, dynamic>{
         'provider': provider,
         'llmProvider': provider,
         'localLlmUrl': localLlmUrl,
         'localLlmModel': localLlmModel,
         'localLlmApiKey': localLlmApiKey,
-        'geminiModel': geminiModel,
+        'cloudProvider': cloudProvider ?? 'groq',
+        'cloudModel': model,
+        'cloudUrl': cloudUrl ?? '',
+        'openCodeModel': model,
+        'geminiModel': model,
       };
-      if (geminiApiKey != null && geminiApiKey.trim().isNotEmpty) {
-        payload['apiKey'] = geminiApiKey.trim();
-        payload['geminiApiKey'] = geminiApiKey.trim();
+      if (apiKey != null && apiKey.trim().isNotEmpty) {
+        payload['apiKey'] = apiKey.trim();
+        payload['cloudApiKey'] = apiKey.trim();
+        payload['openCodeApiKey'] = apiKey.trim();
+        payload['geminiApiKey'] = apiKey.trim();
       }
       final res = await settingsRepository.testLlm(payload);
       _testResult = res;
@@ -185,6 +220,30 @@ class SettingsViewModel extends ChangeNotifier {
       _testResult = {'ok': false, 'message': e.toString()};
     } finally {
       _isTestingLlm = false;
+      notifyListeners();
+    }
+  }
+
+  Future<List<String>> fetchAvailableModels({
+    required String provider,
+    String? apiKey,
+    String? customUrl,
+  }) async {
+    _isFetchingModels = true;
+    notifyListeners();
+    try {
+      final key = (apiKey != null && apiKey.trim().isNotEmpty)
+          ? apiKey.trim()
+          : settings.cloudApiKey;
+      final models = await settingsRepository.fetchAvailableModels(
+        provider: provider,
+        apiKey: key,
+        customUrl: customUrl,
+      );
+      _availableModels = models;
+      return models;
+    } finally {
+      _isFetchingModels = false;
       notifyListeners();
     }
   }

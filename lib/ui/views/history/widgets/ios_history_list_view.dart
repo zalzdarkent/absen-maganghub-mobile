@@ -59,7 +59,11 @@ class IosHistoryListView extends StatelessWidget {
               IosModal.showBottomSheet(
                 context: context,
                 title: 'Detail Logbook',
-                child: EditEntrySheet(entry: entry, viewModel: viewModel),
+                builder: (modalCtx, scrollController) => EditEntrySheet(
+                  entry: entry,
+                  viewModel: viewModel,
+                  scrollController: scrollController,
+                ),
               );
             },
             child: Row(
